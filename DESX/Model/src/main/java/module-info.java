@@ -1,0 +1,3 @@
+module cryptodesx {
+    exports cryptoDESX;
+}
