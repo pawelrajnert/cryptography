@@ -5,6 +5,8 @@ public class DES {
     private byte[] message;
     private SBox sBox;
     private Permutation permutation;
+    private byte[] leftPart = new byte[4];
+    private byte[] rightPart = new byte[4];
 
 
     DES() {
@@ -41,12 +43,20 @@ public class DES {
 
     // ustawiamy glowny klucz domyslny algorytmu w naszym przypadku jest to losowa liczba 13372115
     // jednak liczba ma okreslona liczbe znakow (8 znakow = 64 bity)
-    public void setMainKey(byte[] mainKey) {
+    public void setMainKey() {
         mainKey = "13372115".getBytes();
     }
 
+    public byte[] getLeftPart() {
+        return leftPart;
+    }
+
+    public byte[] getRightPart() {
+        return rightPart;
+    }
+
     // krok 1, wiadomosc jest poddana initial permutation
-    private void initialPermutation() {
+    public void initialPermutation() {
         byte[] IPmessage = new byte[message.length];
         for (int i = 0; i < 8; i++) { // bo tablica IP jest 8 x 8
             for (int j = 0; j < 8; j++) {
@@ -63,11 +73,25 @@ public class DES {
 
                 if (currentBit == true) { // jesli rozwazany bit to 1 to wrzucamy go do IPmessage
                     IPmessage[outByteIndex] |= (1 << (7 - outBytePossition));
-                } else {
-                    IPmessage[outByteIndex] &= ~(1 << (7 - outBytePossition)); // jesli rozwazany bit to 0 to wrzucamy 0 do IPmessage
+                } else { // jesli rozwazany bit to 0 to wrzucamy 0 do IPmessage
+                    IPmessage[outByteIndex] &= ~(1 << (7 - outBytePossition));
                 }
             }
         }
         message = IPmessage;
     }
+
+    // dzielimy wiadomosc po initial permutation na 2 czesci- lewa i prawa (64 bity -> 2x 32bity)
+    public void afterIPSplitter() {
+        if (message.length != 8 || message == null) {
+            int pom = message.length;
+            throw new IllegalArgumentException("Wiadomość nie ma 64 bitów, tylko ma ich: " + pom);
+        }
+
+        for (int i = 0; i < 4; i++) {
+            leftPart[i] = message[i]; // lewa czesc to bajty: 0, 1, 2, 3 (32 bity)
+            rightPart[i] = message[i + 4]; // prawa czesc to bajty: 4, 5, 6, 7 (32 bity)
+        }
+    }
+
 }

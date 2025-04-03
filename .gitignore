@@ -30,3 +30,4 @@ out/
 META-INF/
 mvnw
 mvnw.cmd
+.DS_Store
