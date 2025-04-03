@@ -26,10 +26,15 @@ class DESTest {
         System.out.println("Wiadomość po IP: " + Arrays.toString(des.getMessage()) + "|koniec wiadomości");
 
         des.messageAfterIPSplitter();
-        System.out.println("Lewa część wiadomości: " + Arrays.toString(des.getLeftPart()) + "|koniec wiadomości");
-        System.out.println("Prawa część wiadomości: " + Arrays.toString(des.getRightPart()) + "|koniec wiadomości");
+        System.out.println("Lewa część wiadomości: " + Arrays.toString(des.getLeftMesPart()) + "|koniec wiadomości");
+        System.out.println("Prawa część wiadomości: " + Arrays.toString(des.getRightMesPart()) + "|koniec wiadomości");
 
         des.make56MainKey();
         System.out.println("Klucz w wersji 56 bit: "+ Arrays.toString(des.getMainKey())  + "|koniec klucza");
+
+        des.MainKey56bitSplitter();
+        System.out.println("Klucz w wersji 28 bit (lewa część): "+ Arrays.toString(des.getLeftKeyPart())  + "|koniec klucza");
+        System.out.println("Klucz w wersji 28 bit (prawa część): "+ Arrays.toString(des.getRightKeyPart())  + "|koniec klucza");
+
     }
 }

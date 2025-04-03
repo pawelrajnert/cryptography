@@ -2,11 +2,13 @@ package cryptoDESX;
 
 public class DES {
     private byte[] mainKey;
-    private byte[] message;
+    private byte[] leftKeyPart = new byte[4];
+    private byte[] rightKeyPart = new byte[4];
     private final SBox sBox;
+    private byte[] message;
     private final Permutation permutation;
-    private byte[] leftPart = new byte[4];
-    private byte[] rightPart = new byte[4];
+    private byte[] leftMesPart = new byte[4];
+    private byte[] rightMesPart = new byte[4];
 
 
     DES() {
@@ -20,6 +22,14 @@ public class DES {
 
     public byte[] getMessage() {
         return message;
+    }
+
+    public byte[] getLeftKeyPart() {
+        return leftKeyPart;
+    }
+
+    public byte[] getRightKeyPart() {
+        return rightKeyPart;
     }
 
     // funkcja sprawdza czy wprowadzona wiadomość jest prawidłowego rozmiaru (8 bit lub wieloktotnosc)
@@ -47,12 +57,12 @@ public class DES {
         mainKey = "13372115".getBytes();
     }
 
-    public byte[] getLeftPart() {
-        return leftPart;
+    public byte[] getLeftMesPart() {
+        return leftMesPart;
     }
 
-    public byte[] getRightPart() {
-        return rightPart;
+    public byte[] getRightMesPart() {
+        return rightMesPart;
     }
 
     // krok 1, wiadomosc jest poddana initial permutation
@@ -89,8 +99,8 @@ public class DES {
         }
 
         for (int i = 0; i < 4; i++) {
-            leftPart[i] = message[i]; // lewa czesc to bajty: 0, 1, 2, 3 (32 bity)
-            rightPart[i] = message[i + 4]; // prawa czesc to bajty: 4, 5, 6, 7 (32 bity)
+            leftMesPart[i] = message[i]; // lewa czesc to bajty: 0, 1, 2, 3 (32 bity)
+            rightMesPart[i] = message[i + 4]; // prawa czesc to bajty: 4, 5, 6, 7 (32 bity)
         }
     }
 
@@ -112,13 +122,46 @@ public class DES {
                 int outBitIndex = 7 - (pom % 8); // pozycja bitu w bajcie
                 if (currentBit == true) { // jesli bit to 1 to wrzucamy go do mainkey56bit
                     MainKey56[outByteIndex] |= (1 << outBitIndex);
-                }
-                else { // jesli bit to 0 to wrzucamy go do mainkey56bit
+                } else { // jesli bit to 0 to wrzucamy go do mainkey56bit
                     MainKey56[outByteIndex] &= ~(1 << outBitIndex);
                 }
                 pom++;
             }
         }
         mainKey = MainKey56;
+    }
+
+    // dzielimy 56 bitowy klucz na 2 x 28 bit podklucze
+    public void MainKey56bitSplitter() {
+        if (mainKey.length != 7 || mainKey == null) {
+            int pom = mainKey.length;
+            throw new IllegalArgumentException("Klucz nie jest kluczem bez bitów parzystości (56 bit), tylko ma ich: " + pom);
+        }
+        for (int i = 0; i < 28; i++) { // dodajemy pierwsze 28 bit do lewej części klucza
+            int byteIndex = i / 8; // rozwazany bajt
+            int bitPossition = 7 - (i % 8); // pozycja bitu w bajcie
+
+            // odczytujemy wartosc bitu
+            boolean currentBit = ((mainKey[byteIndex] >> bitPossition) & 1) == 1;
+
+            if (currentBit == true) { // jesli bit to 1 to tak go ustawiamy
+                leftKeyPart[byteIndex] |= (1 << bitPossition);
+            } else { // jesli bit to 0 to zostawiamy go jako 0
+                leftKeyPart[byteIndex] &= ~(1 << bitPossition);
+            }
+        }
+        for (int j = 28; j < 56; j++) { // dodajemy drugie 28 bit do prawej części klucza
+            int byteIndex = (j / 8); // rozwazany bajt
+            int bitPossition = 7 - (j % 8); // pozycja bitu w bajcie
+
+            // odczytujemy wartosc bitu
+            boolean currentBit = ((mainKey[byteIndex] >> bitPossition) & 1) == 1;
+
+            if (currentBit == true) { // jesli bit to 1 to tak go ustawiamy
+                rightKeyPart[byteIndex - 3] |= (1 << bitPossition);
+            } else { // jesli bit to 0 to zostawiamy go jako 0
+                rightKeyPart[byteIndex - 3] &= ~(1 << bitPossition);
+            }
+        }
     }
 }
