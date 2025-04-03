@@ -25,9 +25,11 @@ class DESTest {
         des.initialPermutation();
         System.out.println("Wiadomość po IP: " + Arrays.toString(des.getMessage()) + "|koniec wiadomości");
 
-        des.afterIPSplitter();
+        des.messageAfterIPSplitter();
         System.out.println("Lewa część wiadomości: " + Arrays.toString(des.getLeftPart()) + "|koniec wiadomości");
         System.out.println("Prawa część wiadomości: " + Arrays.toString(des.getRightPart()) + "|koniec wiadomości");
 
+        des.make56MainKey();
+        System.out.println("Klucz w wersji 56 bit: "+ Arrays.toString(des.getMainKey())  + "|koniec klucza");
     }
 }

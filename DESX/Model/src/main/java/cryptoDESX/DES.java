@@ -3,8 +3,8 @@ package cryptoDESX;
 public class DES {
     private byte[] mainKey;
     private byte[] message;
-    private SBox sBox;
-    private Permutation permutation;
+    private final SBox sBox;
+    private final Permutation permutation;
     private byte[] leftPart = new byte[4];
     private byte[] rightPart = new byte[4];
 
@@ -82,10 +82,10 @@ public class DES {
     }
 
     // dzielimy wiadomosc po initial permutation na 2 czesci- lewa i prawa (64 bity -> 2x 32bity)
-    public void afterIPSplitter() {
+    public void messageAfterIPSplitter() {
         if (message.length != 8 || message == null) {
             int pom = message.length;
-            throw new IllegalArgumentException("Wiadomość nie ma 64 bitów, tylko ma ich: " + pom);
+            throw new IllegalArgumentException("Wiadomość na wejściu nie ma 64 bitów, tylko ma ich: " + pom);
         }
 
         for (int i = 0; i < 4; i++) {
@@ -94,4 +94,31 @@ public class DES {
         }
     }
 
+    // usuwamy bity parzystości z klucza głównego
+    public void make56MainKey() {
+        if (mainKey.length != 8 || mainKey == null) {
+            int pom = mainKey.length;
+            throw new IllegalArgumentException("Klucz na wejściu nie ma 64 bitów, tylko ma ich: " + pom);
+        }
+
+        byte[] MainKey56 = new byte[7];
+        int pom = 0;
+
+        for (int i = 0; i < 8; i++) {
+            for (int j = 7; j >= 1; j--) { // bierzemy pod uwage wszystkie bity oprocz bitu parzystosci
+                boolean currentBit = (mainKey[i] >> j) == 1;
+
+                int outByteIndex = pom / 8; // bajt docelowy
+                int outBitIndex = 7 - (pom % 8); // pozycja bitu w bajcie
+                if (currentBit == true) { // jesli bit to 1 to wrzucamy go do mainkey56bit
+                    MainKey56[outByteIndex] |= (1 << outBitIndex);
+                }
+                else { // jesli bit to 0 to wrzucamy go do mainkey56bit
+                    MainKey56[outByteIndex] &= ~(1 << outBitIndex);
+                }
+                pom++;
+            }
+        }
+        mainKey = MainKey56;
+    }
 }
