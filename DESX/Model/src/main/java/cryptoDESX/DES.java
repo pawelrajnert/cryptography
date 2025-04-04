@@ -9,6 +9,7 @@ public class DES {
     private final Permutation permutation;
     private byte[] leftMesPart = new byte[4];
     private byte[] rightMesPart = new byte[4];
+    private byte[][] roundKeys = new byte[16][8];
 
 
     DES() {
@@ -30,6 +31,10 @@ public class DES {
 
     public byte[] getRightKeyPart() {
         return rightKeyPart;
+    }
+
+    public byte[][] getRoundKeys() {
+        return roundKeys;
     }
 
     // funkcja sprawdza czy wprowadzona wiadomość jest prawidłowego rozmiaru (8 bit lub wieloktotnosc)
@@ -132,7 +137,7 @@ public class DES {
     }
 
     // dzielimy 56 bitowy klucz na 2 x 28 bit podklucze
-    public void MainKey56bitSplitter() {
+    public void mainKey56bitSplitter() {
         if (mainKey.length != 7 || mainKey == null) {
             int pom = mainKey.length;
             throw new IllegalArgumentException("Klucz nie jest kluczem bez bitów parzystości (56 bit), tylko ma ich: " + pom);
@@ -164,4 +169,71 @@ public class DES {
             }
         }
     }
+
+    // tworzymy 16 kluczy dla kazdej z rund
+    public void makeRoundKeys() {
+        if (leftKeyPart.length != 4 || rightKeyPart.length != 4) {
+            int pomL = leftKeyPart.length;
+            int pomR = rightKeyPart.length;
+            throw new IllegalArgumentException("Podklucze nie mają po 28 bit, tylko mają kolejno, lewy: " + pomL + " prawy: " + pomR);
+        }
+
+        final int[] shiftsReader = Permutation.getShifts();
+
+        for (int i = 0; i < 16; i++) {
+            rotateLeftSingleKey(leftKeyPart, shiftsReader[i]); // rotujemy o daną liczbę lewą część klucza w zależności od rundy
+            rotateLeftSingleKey(rightKeyPart, shiftsReader[i]); // rotujemy o daną liczbę prawą część klucza w zależności od rundy
+
+            // łączymy podklucze (2 x 28 bit) w jeden 56 bitowy (przechowywany w roundKeys)
+            System.arraycopy(leftKeyPart, 0, roundKeys[i], 0, 4);
+            System.arraycopy(rightKeyPart, 0, roundKeys[i], 4, 4);
+        }
+
+    }
+
+    public void rotateLeftSingleKey(byte[] key, int shiftAmount) {
+        // wykonujemy rotację o jeden bit, shiftAmount razy (korzystamy z wartosci z tablicy).
+        for (int i = 0; i < shiftAmount; i++) {
+
+            // bit najbardziej po lewo w bajcie
+            boolean leftBit = ((key[0] >> 7) & 1) == 1;
+
+            // przesuwamy pierwsze pelne 3 bajty (po 8 bit)
+            for (int j = 0; j < 3; j++) {
+
+                // bit najbardziej po lewo z kolejnego bajtu
+                boolean nextLeftBit = ((key[j + 1] >> 7) & 1) == 1;
+
+                key[j] = (byte) ((key[j] << 1));
+                if (nextLeftBit == true) {
+                    key[j] |= 1; // przenosimy najbardziej na prawo
+                } else {
+                    key[j] &= ~1;
+                }
+            }
+
+            // rozwazamy ostatni niepelny bajt do przesuwania
+            int smallByte = (key[3] >> 4); // bierzemy tylko 4 bity (28 - (3 x 8) = 4 bit), bo to ten niepelny bajt
+            smallByte = (smallByte << 1);
+
+            if (leftBit == true) {
+                smallByte |= 1; // przenosimy najbardziej na prawo
+            } else {
+                smallByte &= ~1;
+            }
+            key[3] = (byte) (smallByte << 4);
+        }
+    }
+
 }
+
+/*
+Jak działa algorytm DES? (zmiany w działaniu DESX opisane będą w pliku klasy DESX)
+1) podajemy tekst do zaszyfrowania (do wprowadzenia) oraz klucz główny (ustalony z góry)
+2) tekst jawny poddajemy initial permutation
+3) tekst jawny dzielimy na pół (64 bit -> 2 x 32 bit)
+4) z klucza głównego usuwamy bity parzystości (64 bit -> 56 bit)
+5) klucz główny bez bitów parzystości dzielimy na pół (56 bit -> 2 x 28 bit)
+6) tworzymy 16 kluczy rundowych: kazda część podklucza przesuwana jest w lewo o określoną ilość razy
+7) łączymy każdą parę przekształconych podkluczy w jeden klucz 56 bit
+ */

@@ -32,9 +32,11 @@ class DESTest {
         des.make56MainKey();
         System.out.println("Klucz w wersji 56 bit: "+ Arrays.toString(des.getMainKey())  + "|koniec klucza");
 
-        des.MainKey56bitSplitter();
+        des.mainKey56bitSplitter();
         System.out.println("Klucz w wersji 28 bit (lewa część): "+ Arrays.toString(des.getLeftKeyPart())  + "|koniec klucza");
         System.out.println("Klucz w wersji 28 bit (prawa część): "+ Arrays.toString(des.getRightKeyPart())  + "|koniec klucza");
 
+        des.makeRoundKeys();
+        System.out.println("Złączone podklucze po rotacji w lewo (16 rund): " + Arrays.deepToString(des.getRoundKeys()) + "|koniec klucza");
     }
 }
