@@ -109,31 +109,37 @@ public class DES {
         }
     }
 
-    // usuwamy bity parzystości z klucza głównego
-    public void make56MainKey() {
+    // klucz 64 bitowy poddajemy PC1, dzięki czemu usuniemy też bity parzystości i klucz będzie 56 bit
+    public void doPC1on56bitKey() {
         if (mainKey.length != 8 || mainKey == null) {
             int pom = mainKey.length;
-            throw new IllegalArgumentException("Klucz na wejściu nie ma 64 bitów, tylko ma ich: " + pom);
+            throw new IllegalArgumentException("Klucz na wejściu nie ma 56 bitów, tylko ma ich: " + pom);
         }
 
-        byte[] MainKey56 = new byte[7];
+        byte[] pc1OnKey = new byte[7];
         int pom = 0;
 
         for (int i = 0; i < 8; i++) {
-            for (int j = 7; j >= 1; j--) { // bierzemy pod uwage wszystkie bity oprocz bitu parzystosci
-                boolean currentBit = (mainKey[i] >> j) == 1;
+            for (int j = 0; j < 7; j++) {
+                int bitIndex = permutation.PC1[i][j] - 1; // pobieramy numer bitu
+                int byteIndex = bitIndex / 8; // informacja o tym w ktorym bajcie jest nasz obecnie rozwazany bit
+                int bitPossition = (bitIndex % 8); // numer bitu w wyzej sprawdzanym bajcie (uwazamy na to ze jest bez bitu parzystosci)
+
+                // odczytujemy wartosc bitu
+                boolean currentBit = ((mainKey[byteIndex] >> bitPossition) & 1) == 1;
 
                 int outByteIndex = pom / 8; // bajt docelowy
                 int outBitIndex = 7 - (pom % 8); // pozycja bitu w bajcie
-                if (currentBit == true) { // jesli bit to 1 to wrzucamy go do mainkey56bit
-                    MainKey56[outByteIndex] |= (1 << outBitIndex);
-                } else { // jesli bit to 0 to wrzucamy go do mainkey56bit
-                    MainKey56[outByteIndex] &= ~(1 << outBitIndex);
+
+                if (currentBit == true) {
+                    pc1OnKey[outByteIndex] |= (1 << outBitIndex);
+                } else {
+                    pc1OnKey[outByteIndex] &= ~(1 << outBitIndex);
                 }
                 pom++;
             }
         }
-        mainKey = MainKey56;
+        mainKey = pc1OnKey;
     }
 
     // dzielimy 56 bitowy klucz na 2 x 28 bit podklucze
@@ -232,8 +238,9 @@ Jak działa algorytm DES? (zmiany w działaniu DESX opisane będą w pliku klasy
 1) podajemy tekst do zaszyfrowania (do wprowadzenia) oraz klucz główny (ustalony z góry)
 2) tekst jawny poddajemy initial permutation
 3) tekst jawny dzielimy na pół (64 bit -> 2 x 32 bit)
-4) z klucza głównego usuwamy bity parzystości (64 bit -> 56 bit)
-5) klucz główny bez bitów parzystości dzielimy na pół (56 bit -> 2 x 28 bit)
+4) klucz główny poddajemy permutacji PC1, dzięki czemu usuniemy też bity parzystości (64 bit -> 56 bit)
+5) klucz główny po permutacji dzielimy na pół (56 bit -> 2 x 28 bit)
 6) tworzymy 16 kluczy rundowych: kazda część podklucza przesuwana jest w lewo o określoną ilość razy
 7) łączymy każdą parę przekształconych podkluczy w jeden klucz 56 bit
+8) każdy klucz rundowy poddajemy permutacji PC2
  */

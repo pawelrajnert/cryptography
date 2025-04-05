@@ -20,7 +20,7 @@ public class Permutation {
             {61, 53, 45, 37, 29, 21, 13, 5},
             {63, 55, 47, 39, 31, 23, 15, 7}
     };
-    public static final int[][] IPnegative1 = {
+    public static final int[][] IP1 = {
             {40, 8, 48, 16, 56, 24, 64, 32},
             {39, 7, 47, 15, 55, 23, 63, 31},
             {38, 6, 46, 14, 54, 22, 62, 30},
@@ -31,7 +31,7 @@ public class Permutation {
             {33, 1, 41, 9, 49, 17, 57, 25}
     };
 
-    public static final int[][] IPnegative2 = {
+    public static final int[][] IP2 = {
             {14, 17, 11, 24, 1, 5},
             {3, 28, 15, 6, 21, 10},
             {23, 19, 12, 4, 26, 8},
@@ -53,7 +53,7 @@ public class Permutation {
             22, 11, 4, 25,
     };
 
-    public static final int[][] PCnegative1 = {
+    public static final int[][] PC1 = {
             {57, 49, 41, 33, 25, 17, 9},
             {1, 58, 50, 42, 34, 26, 18},
             {10, 2, 59, 51, 43, 35, 27},

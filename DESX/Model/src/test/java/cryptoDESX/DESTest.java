@@ -29,8 +29,8 @@ class DESTest {
         System.out.println("Lewa część wiadomości: " + Arrays.toString(des.getLeftMesPart()) + "|koniec wiadomości");
         System.out.println("Prawa część wiadomości: " + Arrays.toString(des.getRightMesPart()) + "|koniec wiadomości");
 
-        des.make56MainKey();
-        System.out.println("Klucz w wersji 56 bit: "+ Arrays.toString(des.getMainKey())  + "|koniec klucza");
+        des.doPC1on56bitKey();
+        System.out.println("Klucz w wersji 56 bit po PC1: "+ Arrays.toString(des.getMainKey())  + "|koniec klucza");
 
         des.mainKey56bitSplitter();
         System.out.println("Klucz w wersji 28 bit (lewa część): "+ Arrays.toString(des.getLeftKeyPart())  + "|koniec klucza");
