@@ -9,7 +9,7 @@ public class DES {
     private final Permutation permutation;
     private byte[] leftMesPart = new byte[4];
     private byte[] rightMesPart = new byte[4];
-    private byte[][] roundKeys = new byte[16][8];
+    private byte[][] roundKeys = new byte[16][7];
 
 
     DES() {
@@ -56,10 +56,23 @@ public class DES {
         this.message = messageString.getBytes();
     }
 
-    // ustawiamy glowny klucz domyslny algorytmu w naszym przypadku jest to losowa liczba 13372115
-    // jednak liczba ma okreslona liczbe znakow (8 znakow = 64 bity)
-    public void setMainKey() {
-        mainKey = "13372115".getBytes();
+    // sprawdzamy czy klucz ma 8 bajtow, a jak nie to dopisujemy do niego spacje
+    public String isKeyCorrect(String key) {
+        if (key == null || key.length() == 0 || key.length() > 8) {
+            return "abcdefgh"; // jesli klucz jest niepoprawny, to ustawiamy narazie taki domyślny
+        }
+        while (key.length() < 8) {
+            key += " ";
+        }
+
+        return key;
+    }
+
+    // ustawiamy klucz jesli wprowadzony jest poprawny
+    public void setMainKey(byte[] key) {
+        String keyString = new String(key);
+        keyString = isKeyCorrect(keyString);
+        this.mainKey = keyString.getBytes();
     }
 
     public byte[] getLeftMesPart() {
@@ -69,6 +82,16 @@ public class DES {
     public byte[] getRightMesPart() {
         return rightMesPart;
     }
+
+    public static String arrayToDecimal(byte[] array, String version) {
+        StringBuilder sb = new StringBuilder();
+        for (byte a : array) {
+            String binary = String.format(version, Integer.toBinaryString(a & 0xFF)).replace(' ', '0');
+            sb.append(binary).append(" ");
+        }
+        return sb.toString();
+    }
+
 
     // krok 1, wiadomosc jest poddana initial permutation
     public void initialPermutation() {
@@ -113,28 +136,27 @@ public class DES {
     public void doPC1on56bitKey() {
         if (mainKey.length != 8 || mainKey == null) {
             int pom = mainKey.length;
-            throw new IllegalArgumentException("Klucz na wejściu nie ma 56 bitów, tylko ma ich: " + pom);
+            throw new IllegalArgumentException("Klucz na wejściu nie ma 64 bitów, tylko ma ich: " + pom);
         }
 
-        byte[] pc1OnKey = new byte[7];
+        byte[] pc1OnKey = new byte[8];
         int pom = 0;
 
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 7; j++) {
                 int bitIndex = permutation.PC1[i][j] - 1; // pobieramy numer bitu
                 int byteIndex = bitIndex / 8; // informacja o tym w ktorym bajcie jest nasz obecnie rozwazany bit
-                int bitPossition = (bitIndex % 8); // numer bitu w wyzej sprawdzanym bajcie (uwazamy na to ze jest bez bitu parzystosci)
+                int bitPossition = 7 - (bitIndex % 8); // numer bitu w wyzej sprawdzanym bajcie
 
                 // odczytujemy wartosc bitu
                 boolean currentBit = ((mainKey[byteIndex] >> bitPossition) & 1) == 1;
 
-                int outByteIndex = pom / 8; // bajt docelowy
-                int outBitIndex = 7 - (pom % 8); // pozycja bitu w bajcie
+                int outBitIndex = 6 - j;
 
                 if (currentBit == true) {
-                    pc1OnKey[outByteIndex] |= (1 << outBitIndex);
+                    pc1OnKey[i] |= (1 << outBitIndex);
                 } else {
-                    pc1OnKey[outByteIndex] &= ~(1 << outBitIndex);
+                    pc1OnKey[i] &= ~(1 << outBitIndex);
                 }
                 pom++;
             }
@@ -190,15 +212,21 @@ public class DES {
             rotateLeftSingleKey(leftKeyPart, shiftsReader[i]); // rotujemy o daną liczbę lewą część klucza w zależności od rundy
             rotateLeftSingleKey(rightKeyPart, shiftsReader[i]); // rotujemy o daną liczbę prawą część klucza w zależności od rundy
 
-            // łączymy podklucze (2 x 28 bit) w jeden 56 bitowy (przechowywany w roundKeys)
-            System.arraycopy(leftKeyPart, 0, roundKeys[i], 0, 4);
-            System.arraycopy(rightKeyPart, 0, roundKeys[i], 4, 4);
-        }
+            // część kodu poniżej ma na celu złączyć dwa 28 bitowe podklucze w jeden klucz zapisany dokładnie na 56 bitach czyli 7 bajtach
+            int leftPart = ((leftKeyPart[0]) << 20) | ((leftKeyPart[1]) << 12) | ((leftKeyPart[2]) << 4) | ((leftKeyPart[3]) >> 4);
 
+            int rightPart = ((rightKeyPart[0]) << 20) | ((rightKeyPart[1]) << 12) | ((rightKeyPart[2]) << 4) | ((rightKeyPart[3]) >> 4);
+
+            long fullKey = (((long) leftPart) << 28) | ((rightPart) & 0x0FFFFFFF); // maska 28 bit (0x0FFFFFFF) zeby tylko tyle brac pod uwage
+
+            for (int j = 0; j < 7; j++) { // przepisujemy wartosci do naszej tablicy z kluczami rundowymi, łącznie mamy 7 bajtów
+                roundKeys[i][j] = (byte) (fullKey >>> ((6 - j) * 8));
+            }
+        }
     }
 
     public void rotateLeftSingleKey(byte[] key, int shiftAmount) {
-        // wykonujemy rotację o jeden bit, shiftAmount razy (korzystamy z wartosci z tablicy).
+        // wykonujemy rotację o jeden bit, shiftAmount razy (korzystamy z wartosci z tablicy)
         for (int i = 0; i < shiftAmount; i++) {
 
             // bit najbardziej po lewo w bajcie
@@ -230,6 +258,40 @@ public class DES {
             key[3] = (byte) (smallByte << 4);
         }
     }
+
+    public void doPC2OnRoundKeys() { // permutacja działa jak PC1, tylko tym razem robimy z 56 bitów 48
+        for (int roundKey = 0; roundKey < 16; roundKey++) {
+            if (roundKeys[roundKey] == null || roundKeys[roundKey].length != 7) {
+                int pom = roundKeys[roundKey].length;
+                throw new IllegalArgumentException("Klucz rundowy na wejściu nie ma 56 bitów, tylko ma ich: " + pom);
+            }
+
+            byte[] pc2OnKey = new byte[6];
+            int pom1 = 0;
+
+            for (int i = 0; i < 8; i++) {
+                for (int j = 0; j < 6; j++) {
+                    int bitIndex = permutation.PC2[i][j] - 1;
+                    int byteIndex = bitIndex / 8;
+                    int bitPosition = 7 - (bitIndex % 8);
+
+                    boolean currentBit = (((roundKeys[roundKey])[byteIndex] >> bitPosition) & 1) == 1;
+
+                    int outByteIndex = pom1 / 8;
+                    int outBitIndex = 7 - (pom1 % 8);
+
+                    if (currentBit) {
+                        pc2OnKey[outByteIndex] |= (1 << outBitIndex);
+                    } else {
+                        pc2OnKey[outByteIndex] &= ~(1 << outBitIndex);
+                    }
+                    pom1++;
+                }
+            }
+            roundKeys[roundKey] = pc2OnKey;
+        }
+    }
+
 
 }
 

@@ -16,11 +16,13 @@ class DESTest {
         des.setMessage(testMes.getBytes());
         System.out.println("Wiadomość w postaci bitowej: " + Arrays.toString(des.getMessage()) + "|koniec wiadomości");
 
-        des.setMainKey();
-        System.out.println("Klucz główny: " + Arrays.toString(des.getMainKey())  + "|koniec klucza");
+        String testKey = "krypto11";
+        des.setMainKey(testKey.getBytes());
+        System.out.println("Klucz główny: " + Arrays.toString(des.getMainKey()) + "|koniec klucza");
+        System.out.println("Klucz główny: " + des.arrayToDecimal(des.getMainKey(), "%8s") + "|koniec klucza");
 
         String shortMes = des.isMessageCorrect("abcd");
-        System.out.println("Wiadomość za krotka po funkcji sprawdzajacej: " + shortMes+ "|koniec wiadomości");
+        System.out.println("Wiadomość za krotka po funkcji sprawdzajacej: " + shortMes + "|koniec wiadomości");
 
         des.initialPermutation();
         System.out.println("Wiadomość po IP: " + Arrays.toString(des.getMessage()) + "|koniec wiadomości");
@@ -30,13 +32,17 @@ class DESTest {
         System.out.println("Prawa część wiadomości: " + Arrays.toString(des.getRightMesPart()) + "|koniec wiadomości");
 
         des.doPC1on56bitKey();
-        System.out.println("Klucz w wersji 56 bit po PC1: "+ Arrays.toString(des.getMainKey())  + "|koniec klucza");
+        System.out.println("Klucz w wersji 56 bit po PC1: " + Arrays.toString(des.getMainKey()) + "|koniec klucza");
+        System.out.println("Klucz w wersji 56 bit po PC1: " + des.arrayToDecimal(des.getMainKey(), "%7s") + "|koniec klucza");
 
         des.mainKey56bitSplitter();
-        System.out.println("Klucz w wersji 28 bit (lewa część): "+ Arrays.toString(des.getLeftKeyPart())  + "|koniec klucza");
-        System.out.println("Klucz w wersji 28 bit (prawa część): "+ Arrays.toString(des.getRightKeyPart())  + "|koniec klucza");
+        System.out.println("Klucz w wersji 28 bit (lewa część): " + Arrays.toString(des.getLeftKeyPart()) + "|koniec klucza");
+        System.out.println("Klucz w wersji 28 bit (prawa część): " + Arrays.toString(des.getRightKeyPart()) + "|koniec klucza");
 
         des.makeRoundKeys();
         System.out.println("Złączone podklucze po rotacji w lewo (16 rund): " + Arrays.deepToString(des.getRoundKeys()) + "|koniec klucza");
+
+        des.doPC2OnRoundKeys();
+        System.out.println("Podklucze po PC2: " + Arrays.deepToString(des.getRoundKeys()) + "|koniec klucza");
     }
 }
