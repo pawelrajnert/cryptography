@@ -273,7 +273,7 @@ public class DES {
                     int outByteIndex = pom1 / 6;
                     int outBitIndex = 5 - (pom1 % 6);
 
-                    if (currentBit) {
+                    if (currentBit == true) {
                         pc2OnKey[outByteIndex] |= (1 << outBitIndex);
                     } else {
                         pc2OnKey[outByteIndex] &= ~(1 << outBitIndex);

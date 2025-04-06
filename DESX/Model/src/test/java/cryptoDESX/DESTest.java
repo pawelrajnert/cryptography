@@ -20,7 +20,9 @@ class DESTest {
         System.out.println("Wiadomość przed algorytmem: " + testMes + "|koniec wiadomości");
 
         des.setMessage(testMes.getBytes());
-        System.out.println("Wiadomość w postaci bitowej: " + Arrays.toString(des.getMessage()) + "|koniec wiadomości");
+        System.out.println("Wiadomość w postaci liczb ascii: " + Arrays.toString(des.getMessage()) + "|koniec wiadomości");
+        System.out.println("Wiadomość w postaci bitowej: " + des.arrayToDecimal(des.getMessage(),"%8s") + "|koniec wiadomości");
+
 
         String testKey = "krypto11";
         des.setMainKey(testKey.getBytes());
@@ -32,6 +34,7 @@ class DESTest {
 
         des.initialPermutation();
         System.out.println("Wiadomość po IP: " + Arrays.toString(des.getMessage()) + "|koniec wiadomości");
+        System.out.println("Wiadomość po IP: " + des.arrayToDecimal(des.getMessage(),"%8s") + "|koniec wiadomości");
 
         des.messageAfterIPSplitter();
         System.out.println("Lewa część wiadomości: " + Arrays.toString(des.getLeftMesPart()) + "|koniec wiadomości");
