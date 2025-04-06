@@ -219,51 +219,35 @@ public class DES {
             rotateLeftSingleKey(leftKeyPart, shiftsReader[i]); // rotujemy o daną liczbę lewą część klucza w zależności od rundy
             rotateLeftSingleKey(rightKeyPart, shiftsReader[i]); // rotujemy o daną liczbę prawą część klucza w zależności od rundy
 
-            // część kodu poniżej ma na celu złączyć dwa 28 bitowe podklucze w jeden klucz zapisany dokładnie na 56 bitach czyli 7 bajtach
-            int leftPart = ((leftKeyPart[0]) << 20) | ((leftKeyPart[1]) << 12) | ((leftKeyPart[2]) << 4) | ((leftKeyPart[3]) >> 4);
+            // tak tworzymy daną część podklucza, przesuwamy o odpowiednią liczbę bitów w zależności od bajtu i maskujemy maską 7 bitową (127 = 01111111)
+            // w taki sposób zapiszemy wynik na 4 bajtach, ale będzie interesowało nas tylko 7 bit z każdego bajtu
+            // mozemy dzialac na incie bo w javie 64 bitowy int jest na 4 bajtach (rozmiar podklucza)
+            int leftPart = ((leftKeyPart[0] & 127) << 21) | ((leftKeyPart[1] & 127) << 14) | ((leftKeyPart[2] & 127) << 7) | (leftKeyPart[3] & 127);
 
-            int rightPart = ((rightKeyPart[0]) << 20) | ((rightKeyPart[1]) << 12) | ((rightKeyPart[2]) << 4) | ((rightKeyPart[3]) >> 4);
+            int rightPart = ((rightKeyPart[0] & 127) << 21) | ((rightKeyPart[1] & 127) << 14) | ((rightKeyPart[2] & 127) << 7) | (rightKeyPart[3] & 127);
 
+            // przechodzimy na long, bo w javie 64 bitowy long to 8 bajtow
             long fullKey = (((long) leftPart) << 28) | ((rightPart) & 0x0FFFFFFF); // maska 28 bit (0x0FFFFFFF) zeby tylko tyle brac pod uwage
 
-            for (int j = 0; j < 7; j++) { // przepisujemy wartosci do naszej tablicy z kluczami rundowymi, łącznie mamy 7 bajtów
-                roundKeys[i][j] = (byte) (fullKey >>> ((6 - j) * 8));
+            // przepisujemy wartosci do naszej tablicy z kluczami rundowymi, łącznie mamy 8 bajtow, ale w kazdym po 7 bit nas interesuje
+            for (int j = 0; j < 8; j++) {
+                roundKeys[i][j] = (byte) ((fullKey >>> (7 * (7 - j))) & 127);
             }
         }
     }
 
     public void rotateLeftSingleKey(byte[] key, int shiftAmount) {
-        // wykonujemy rotację o jeden bit, shiftAmount razy (korzystamy z wartosci z tablicy)
-        for (int i = 0; i < shiftAmount; i++) {
+        // wczytujemy nasza liczbe z tablicy bajtow do inta (mozemy dzialac na incie bo w javie int 64 bitowy jest na 4 bajtach)
+        int keyPart = ((key[0] & 127) << 21) | ((key[1] & 127) << 14) | ((key[2] & 127) << 7) | (key[3] & 127);
 
-            // bit najbardziej po lewo w bajcie
-            boolean leftBit = ((key[0] >> 7) & 1) == 1;
+        // rotujemy w lewo o podaną ilość i przesuwamy bit najbardziej po lewo na sam koniec + na koniec maska na 28 bit
+        keyPart = ((keyPart << shiftAmount) | (keyPart >>> (28 - shiftAmount))) & 0x0FFFFFFF;
 
-            // przesuwamy pierwsze pelne 3 bajty (po 8 bit)
-            for (int j = 0; j < 3; j++) {
-
-                // bit najbardziej po lewo z kolejnego bajtu
-                boolean nextLeftBit = ((key[j + 1] >> 7) & 1) == 1;
-
-                key[j] = (byte) ((key[j] << 1));
-                if (nextLeftBit == true) {
-                    key[j] |= 1; // przenosimy najbardziej na prawo
-                } else {
-                    key[j] &= ~1;
-                }
-            }
-
-            // rozwazamy ostatni niepelny bajt do przesuwania
-            int smallByte = (key[3] >> 4); // bierzemy tylko 4 bity (28 - (3 x 8) = 4 bit), bo to ten niepelny bajt
-            smallByte = (smallByte << 1);
-
-            if (leftBit == true) {
-                smallByte |= 1; // przenosimy najbardziej na prawo
-            } else {
-                smallByte &= ~1;
-            }
-            key[3] = (byte) (smallByte << 4);
-        }
+        // wracamy znowu do tablicy bajtow, biorąc pod uwagę 4 bajty, ale 7 bit nas interesuje tylko dlatego maska 127
+        key[0] = (byte) ((keyPart >>> 21) & 127);
+        key[1] = (byte) ((keyPart >>> 14) & 127);
+        key[2] = (byte) ((keyPart >>> 7) & 127);
+        key[3] = (byte) (keyPart & 127);
     }
 
     public void doPC2OnRoundKeys() { // permutacja działa jak PC1, tylko tym razem robimy z 56 bitów 48 (DALEJ ZAPISUJEMY TO NA 8 BAJTACH, ALE KORZYSTAMY TYLKO Z 6 BITOW NA BAJT)
@@ -298,8 +282,6 @@ public class DES {
             roundKeys[roundKey] = pc2OnKey;
         }
     }
-
-
 }
 
 /*
@@ -318,4 +300,10 @@ Jak działa algorytm DES? (zmiany w działaniu DESX opisane będą w pliku klasy
 * klucz rundowy jest zapisany na 8 bajtach, ale korzystamy z odpowiedniej ilości bitów tylko jak wyżej
 8) każdy klucz rundowy poddajemy permutacji PC2
 * klucz rundowy po PC2 jest zapisany na 8 bajtach, ale korzystamy z odpowiedniej ilości bitów tylko jak wyżej
+
+Linki do dokumentacji:
+- wybor zmiennych (na ilu bajtach są zapisane)
+https://docs.oracle.com/cd/E19253-01/817-6223/chp-typeopexpr-2/index.html
+- maskowanie na zmiennych z przykladem (&127 &1 i dla maski 28 bit opis)
+https://docs.oracle.com/javase/tutorial/java/nutsandbolts/op3.html
  */

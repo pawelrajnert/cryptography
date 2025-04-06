@@ -51,6 +51,10 @@ class DESTest {
 
         des.makeRoundKeys();
         System.out.println("Złączone podklucze po rotacji w lewo (16 rund): " + Arrays.deepToString(des.getRoundKeys()) + "|koniec klucza");
+        for (int i = 0; i < des.getRoundKeys().length; i++) {
+            System.out.println("Runda " + (i + 1) + ": " + des.arrayToDecimal(des.getRoundKeys()[i], "%7s") + "|koniec klucza");
+        }
+
 
         des.doPC2OnRoundKeys();
         System.out.println("Podklucze po PC2: " + Arrays.deepToString(des.getRoundKeys()) + "|koniec klucza");
