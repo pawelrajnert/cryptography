@@ -1,5 +1,7 @@
 package cryptoDESX;
 
+import java.io.UnsupportedEncodingException;
+
 public class DES {
     private byte[] mainKey;
     private byte[] leftKeyPart = new byte[4];
@@ -51,9 +53,14 @@ public class DES {
 
     // ustawiamy poprawny rozmiar wiadomości
     public void setMessage(byte[] message) {
-        String messageString = new String(message);
-        messageString = isMessageCorrect(messageString);
-        this.message = messageString.getBytes();
+        try {
+            String messageString = new String(message, "ISO-8859-1");
+            messageString = isMessageCorrect(messageString);
+            this.message = messageString.getBytes("ISO-8859-1");
+        }
+        catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
     // sprawdzamy czy klucz ma 8 bajtow, a jak nie to dopisujemy do niego spacje
@@ -70,9 +77,14 @@ public class DES {
 
     // ustawiamy klucz jesli wprowadzony jest poprawny
     public void setMainKey(byte[] key) {
-        String keyString = new String(key);
-        keyString = isKeyCorrect(keyString);
-        this.mainKey = keyString.getBytes();
+        try {
+            String keyString = new String(key, "ISO-8859-1");
+            keyString = isKeyCorrect(keyString);
+            this.mainKey = keyString.getBytes("ISO-8859-1");
+        }
+        catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
     public byte[] getLeftMesPart() {
