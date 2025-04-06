@@ -9,7 +9,7 @@ public class DES {
     private final Permutation permutation;
     private byte[] leftMesPart = new byte[4];
     private byte[] rightMesPart = new byte[4];
-    private byte[][] roundKeys = new byte[16][7];
+    private byte[][] roundKeys = new byte[16][8];
 
 
     DES() {
@@ -92,7 +92,6 @@ public class DES {
         return sb.toString();
     }
 
-
     // krok 1, wiadomosc jest poddana initial permutation
     public void initialPermutation() {
         byte[] IPmessage = new byte[message.length];
@@ -123,7 +122,7 @@ public class DES {
     public void messageAfterIPSplitter() {
         if (message.length != 8 || message == null) {
             int pom = message.length;
-            throw new IllegalArgumentException("Wiadomość na wejściu nie ma 64 bitów, tylko ma ich: " + pom);
+            throw new IllegalArgumentException("Wiadomość nie ma 8 bajtów, tylko ma ich: " + pom);
         }
 
         for (int i = 0; i < 4; i++) {
@@ -136,7 +135,7 @@ public class DES {
     public void doPC1on56bitKey() {
         if (mainKey.length != 8 || mainKey == null) {
             int pom = mainKey.length;
-            throw new IllegalArgumentException("Klucz na wejściu nie ma 64 bitów, tylko ma ich: " + pom);
+            throw new IllegalArgumentException("Klucz nie ma 8 bajtów, tylko ma ich: " + pom);
         }
 
         byte[] pc1OnKey = new byte[8];
@@ -166,9 +165,9 @@ public class DES {
 
     // dzielimy 56 bitowy klucz na 2 x 28 bit podklucze
     public void mainKey56bitSplitter() {
-        if (mainKey.length != 7 || mainKey == null) {
+        if (mainKey.length != 8 || mainKey == null) {
             int pom = mainKey.length;
-            throw new IllegalArgumentException("Klucz nie jest kluczem bez bitów parzystości (56 bit), tylko ma ich: " + pom);
+            throw new IllegalArgumentException("Klucz nie ma 8 bajtów, tylko ma ich: " + pom);
         }
         for (int i = 0; i < 28; i++) { // dodajemy pierwsze 28 bit do lewej części klucza
             int byteIndex = i / 8; // rozwazany bajt
@@ -261,7 +260,7 @@ public class DES {
 
     public void doPC2OnRoundKeys() { // permutacja działa jak PC1, tylko tym razem robimy z 56 bitów 48
         for (int roundKey = 0; roundKey < 16; roundKey++) {
-            if (roundKeys[roundKey] == null || roundKeys[roundKey].length != 7) {
+            if (roundKeys[roundKey] == null || roundKeys[roundKey].length != 8) {
                 int pom = roundKeys[roundKey].length;
                 throw new IllegalArgumentException("Klucz rundowy na wejściu nie ma 56 bitów, tylko ma ich: " + pom);
             }
