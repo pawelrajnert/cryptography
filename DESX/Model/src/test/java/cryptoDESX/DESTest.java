@@ -55,8 +55,10 @@ class DESTest {
             System.out.println("Runda " + (i + 1) + ": " + des.arrayToDecimal(des.getRoundKeys()[i], "%7s") + "|koniec klucza");
         }
 
-
         des.doPC2OnRoundKeys();
         System.out.println("Podklucze po PC2: " + Arrays.deepToString(des.getRoundKeys()) + "|koniec klucza");
+        for (int j = 0; j < des.getRoundKeys().length; j++) {
+            System.out.println("Runda " + (j + 1) + ": " + des.arrayToDecimal(des.getRoundKeys()[j], "%6s") + "|koniec klucza");
+        }
     }
 }

@@ -257,19 +257,21 @@ public class DES {
                 throw new IllegalArgumentException("Klucz rundowy na wejściu nie ma 8 bajtów, tylko ma ich: " + pom);
             }
 
-            byte[] pc2OnKey = new byte[6];
-            int pom1 = 0;
+            byte[] pc2OnKey = new byte[8];
+            int pom1 = 0; // licznik bitow (do 48 nas interesuje wartosc, bo tyle zwraca PC2), zmienna pomocnicza
 
             for (int i = 0; i < 8; i++) {
                 for (int j = 0; j < 6; j++) {
                     int bitIndex = permutation.PC2[i][j] - 1;
-                    int byteIndex = bitIndex / 8;
-                    int bitPosition = 7 - (bitIndex % 8);
+                    // najpierw klucz ma 56 bit wiec interesuje nas 7 bitow z bajta
+                    int byteIndex = bitIndex / 7;
+                    int bitPossition = 6 - (bitIndex % 7);
 
-                    boolean currentBit = (((roundKeys[roundKey])[byteIndex] >> bitPosition) & 1) == 1;
+                    boolean currentBit = (((roundKeys[roundKey])[byteIndex] >> bitPossition) & 1) == 1;
 
-                    int outByteIndex = pom1 / 8;
-                    int outBitIndex = 7 - (pom1 % 8);
+                    // a potem output po PC2 ma 6 bit w bajcie
+                    int outByteIndex = pom1 / 6;
+                    int outBitIndex = 5 - (pom1 % 6);
 
                     if (currentBit) {
                         pc2OnKey[outByteIndex] |= (1 << outBitIndex);
@@ -306,4 +308,6 @@ Linki do dokumentacji:
 https://docs.oracle.com/cd/E19253-01/817-6223/chp-typeopexpr-2/index.html
 - maskowanie na zmiennych z przykladem (&127 &1 i dla maski 28 bit opis)
 https://docs.oracle.com/javase/tutorial/java/nutsandbolts/op3.html
+- dokumentacja NIST
+https://csrc.nist.gov/files/pubs/fips/46/final/docs/nbs.fips.46.pdf
  */
