@@ -6,18 +6,19 @@ public class DES {
     private byte[] mainKey;
     private byte[] leftKeyPart = new byte[4];
     private byte[] rightKeyPart = new byte[4];
-    private final SBox sBox;
     private byte[] message;
-    private final Permutation permutation;
-    private byte[] leftMesPart = new byte[4];
-    private byte[] rightMesPart = new byte[4];
+    private byte[][] leftMesParts = new byte[17][4];
+    private byte[][] rightMesParts = new byte[17][4];
     private byte[][] roundKeys = new byte[16][8];
+    private byte[] finalMessage = new byte[8];
 
+    public DES() {}
 
-    DES() {
-        this.sBox = new SBox();
-        this.permutation = new Permutation();
+    public byte[] getFinalMessagePermutation() {
+        return finalMessagePermutation;
     }
+
+    private byte[] finalMessagePermutation = new byte[8];
 
     public byte[] getMainKey() {
         return mainKey;
@@ -86,12 +87,12 @@ public class DES {
         }
     }
 
-    public byte[] getLeftMesPart() {
-        return leftMesPart;
+    public byte[][] getLeftMesParts() {
+        return leftMesParts;
     }
 
-    public byte[] getRightMesPart() {
-        return rightMesPart;
+    public byte[][] getRightMesParts() {
+        return rightMesParts;
     }
 
     public static String arrayToDecimal(byte[] array, String version) {
@@ -108,7 +109,7 @@ public class DES {
         byte[] IPmessage = new byte[message.length];
         for (int i = 0; i < 8; i++) { // bo tablica IP jest 8 x 8
             for (int j = 0; j < 8; j++) {
-                int bitIndex = permutation.IP[i][j] - 1; // pobieramy numer bitu
+                int bitIndex = Permutation.IP[i][j] - 1; // pobieramy numer bitu
                 int byteIndex = bitIndex / 8; // informacja o tym w ktorym bajcie jest nasz obecnie rozwazany bit
                 int bitPossition = bitIndex % 8; // numer bitu w wyzej sprawdzanym bajcie
 
@@ -137,8 +138,8 @@ public class DES {
         }
 
         for (int i = 0; i < 4; i++) {
-            leftMesPart[i] = message[i]; // lewa czesc to bajty: 0, 1, 2, 3 (32 bity)
-            rightMesPart[i] = message[i + 4]; // prawa czesc to bajty: 4, 5, 6, 7 (32 bity)
+            leftMesParts[0][i] = message[i]; // lewa czesc to bajty: 0, 1, 2, 3 (32 bity)
+            rightMesParts[0][i] = message[i + 4]; // prawa czesc to bajty: 4, 5, 6, 7 (32 bity)
         }
     }
 
@@ -153,7 +154,7 @@ public class DES {
 
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 7; j++) {
-                int bitIndex = permutation.PC1[i][j] - 1; // pobieramy numer bitu (-1, bo indeksujemy od 0)
+                int bitIndex = Permutation.PC1[i][j] - 1; // pobieramy numer bitu (-1, bo indeksujemy od 0)
                 // jest to bit docelowy poniewaz permutacja PC1 mowi nam gdzie na ktore miejsce ma trafic bit z klucza np.
                 // np. 1 wartosc w macierzy PC1 to 57, zatem 1 bit z naszego klucza ma trafic na miejsce 57
 
@@ -273,7 +274,7 @@ public class DES {
 
             for (int i = 0; i < 8; i++) {
                 for (int j = 0; j < 6; j++) {
-                    int bitIndex = permutation.PC2[i][j] - 1;
+                    int bitIndex = Permutation.PC2[i][j] - 1;
                     // najpierw klucz ma 56 bit wiec interesuje nas 7 bitow z bajta
                     int byteIndex = bitIndex / 7;
                     int bitPossition = 6 - (bitIndex % 7);
@@ -296,8 +297,8 @@ public class DES {
         }
     }
 
-    public byte[] expandMessageWithEbitTable() {    // rozszerzenie wiadomości przy wykorzystaniu EbitTable
-        byte[] messageWithEbitTable = new byte[8];      // 8 bajtów po 6 bitów każdy
+    private byte[] expandMessageWithEbitTable(int runda) {    // rozszerzenie wiadomości przy wykorzystaniu EbitTable
+        byte[] result = new byte[8];
 
         int pom = 0;        // tak jak w przypadku PC2 - licznik bitów, do 48
 
@@ -306,37 +307,38 @@ public class DES {
                 int bitIndex = Permutation.EbitTable[i][j] - 1;         // pobranie indeksu bitu z tabeli
                 int byteIndex = bitIndex / 8;                       // obliczenie indeksu bajtu na podstawie indeksu bitu
                 int bitPosition = 7 - bitIndex % 8;                 // policzenie pozycji bitu na podstawie indeksu
-                boolean currentBit = (((rightMesPart[byteIndex]) >> bitPosition) & 1) == 1;        // operacje bitowe w celu wskazania wartości
+                boolean currentBit = (((rightMesParts[runda - 1][byteIndex]) >> bitPosition) & 1) == 1;        // operacje bitowe w celu wskazania wartości
                 // output tak jak w PC2 - na 6 bitów
                 int outByteIndex = pom / 6;
                 int outBitIndex = 5 - (pom % 6);
 
                 if (currentBit) {
-                    messageWithEbitTable[outByteIndex] |= (byte) (1 << outBitIndex);
+                    result[outByteIndex] |= (byte) (1 << outBitIndex);
                 } else {
-                    messageWithEbitTable[outByteIndex] &= (byte) ~(1 << outBitIndex);
+                    result[outByteIndex] &= (byte) ~(1 << outBitIndex);
                 }
                 pom++;
             }
         }
-
-        return messageWithEbitTable;
+        return result;
     }
 
-    public byte[] kOperation(byte[] message) {
+    private byte[] kOperation(int runda) {
         byte[] result = new byte[8];
+        byte[] expandedMessage = expandMessageWithEbitTable(runda);
         for (int i = 0; i < 8; i++) {
-            result[i] = (byte) (message[i] ^ roundKeys[0][i]);
+            result[i] = (byte) (expandedMessage[i] ^ roundKeys[runda - 1][i]);
         }
         return result;
     }
 
-    public byte[] sBoxOperation(byte[] message) {
+    private byte[] sBoxOperation(int runda) {
         byte[] result = new byte[8];
+        byte[] message = kOperation(runda);
         int[][][] sBox = {SBox.SBox1, SBox.SBox2, SBox.SBox3, SBox.SBox4,
                           SBox.SBox5, SBox.SBox6, SBox.SBox7, SBox.SBox8};
         for (int i = 0; i < 8; i++) {
-            int row = (message[i] >> 4) & 0b10 + (message[i] & 0b1);
+            int row = ((message[i] >> 5) & 0b1) << 1 | (message[i] & 0b1);
             int col = (message[i] >> 1) & 0b1111;
             int sBoxResult = sBox[i][row][col];
             result[i] = (byte) (sBoxResult ^ result[i]);
@@ -344,8 +346,9 @@ public class DES {
         return result;
     }
 
-    public byte[] fFunction(byte[] message) {
+    private byte[] fFunction(int runda) {
         byte[] result = new byte[8];
+        byte[] message = sBoxOperation(runda);
         int pom = 0;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 4; j++) {
@@ -363,8 +366,50 @@ public class DES {
                 pom++;
             }
         }
+
         return result;
     }
+
+    private byte[] doFinalPermutation() {
+        byte[] result = new byte[8];
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                int bitIndex = Permutation.IP1[i][j] - 1; // pobieramy numer bitu
+                int byteIndex = bitIndex / 8; // informacja o tym w ktorym bajcie jest nasz obecnie rozwazany bit
+                int bitPosition = bitIndex % 8; // numer bitu w wyzej sprawdzanym bajcie
+
+                // odczytujemy wartosc bitu
+                boolean currentBit = ((finalMessage[byteIndex] >> (7 - bitPosition)) & 1) == 1;
+
+                int outBitIndex = i * 8 + j; // po permutacji tutaj ma znalezc sie rozwazany bit
+                int outByteIndex = outBitIndex / 8; // informacja o bajcie
+                int outBytePosition = outBitIndex % 8; // informacja o bicie w bajcie
+
+                if (currentBit) { // jesli rozwazany bit to 1 to wrzucamy go do IPmessage
+                    result[outByteIndex] |= (byte) (1 << (7 - outBytePosition));
+                } else { // jesli rozwazany bit to 0 to wrzucamy 0 do IPmessage
+                    result[outByteIndex] &= (byte) ~(1 << (7 - outBytePosition));
+                }
+            }
+        }
+        return result;
+    }
+
+    public void encryptMessage() {
+        for (int runda = 1; runda <= 16; runda++) {
+            byte[] result = fFunction(runda);
+            for (int i = 0; i < 4; i++) {
+                leftMesParts[runda][i] = rightMesParts[runda-1][i];
+                rightMesParts[runda][i] = (byte) ((((result[2 * i] & 0x0F) << 4) | (result[2 * i + 1] & 0x0F)) ^ leftMesParts[runda - 1][i]);
+            }
+        }
+        for (int i = 0; i < 4; i++) {
+            finalMessage[i] = rightMesParts[16][i];
+            finalMessage[i + 4] = leftMesParts[16][i];
+        }
+        finalMessagePermutation = doFinalPermutation();
+    }
+
 }
 
 /*

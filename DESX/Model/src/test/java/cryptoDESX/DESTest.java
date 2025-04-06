@@ -17,7 +17,7 @@ class DESTest {
     @DisplayName("Klasa testowa do sprawdzania działania programu")
     void desTest() throws UnsupportedEncodingException {
         DES des = new DES();
-        String testMes = "\u0001\u0023\u0045\u0067\u0089\u00ab\u00cd\u00ef";
+        String testMes = "\u00ab\u00ab\u00ab\u00ab\u00ab\u00ab\u00ab\u00ab";
         byte[] bytes = testMes.getBytes("ISO-8859-1");
 
         System.out.println("Wiadomość przed algorytmem: " + testMes + "|koniec wiadomości");
@@ -26,7 +26,7 @@ class DESTest {
         System.out.println("Wiadomość w postaci liczb ascii: " + Arrays.toString(des.getMessage()) + "|koniec wiadomości");
         System.out.println("Wiadomość w postaci bitowej: " + des.arrayToDecimal(des.getMessage(),"%8s") + "|koniec wiadomości");
 
-        String testKey = "\u0001\u0023\u0045\u0067\u0089\u00ab\u00cd\u00ef";
+        String testKey = "\u00fd\u0023\u00dc\u0011\u0058\u00ab\u00fe\u00b3";
         bytes = testKey.getBytes("ISO-8859-1");
 
         des.setMainKey(bytes);
@@ -42,10 +42,12 @@ class DESTest {
         System.out.println("Wiadomość po IP: " + des.arrayToDecimal(des.getMessage(),"%8s") + "|koniec wiadomości");
 
         des.messageAfterIPSplitter();
-        System.out.println("Lewa część wiadomości: " + Arrays.toString(des.getLeftMesPart()) + "|koniec wiadomości");
-        System.out.println("Lewa część wiadomości: " + des.arrayToDecimal(des.getLeftMesPart(), "%7s") + "|koniec wiadomości");
-        System.out.println("Prawa część wiadomości: " + Arrays.toString(des.getRightMesPart()) + "|koniec wiadomości");
-        System.out.println("Prawa część wiadomości: " + des.arrayToDecimal(des.getRightMesPart(), "%8s") + "|koniec wiadomości");
+        byte[][] leftMesPart = des.getLeftMesParts();
+        byte[][] rightMesPart = des.getRightMesParts();
+        System.out.println("Lewa część wiadomości: " + Arrays.toString(leftMesPart[0]) + "|koniec wiadomości");
+        System.out.println("Lewa część wiadomości: " + des.arrayToDecimal(leftMesPart[0], "%7s") + "|koniec wiadomości");
+        System.out.println("Prawa część wiadomości: " + Arrays.toString(rightMesPart[0]) + "|koniec wiadomości");
+        System.out.println("Prawa część wiadomości: " + des.arrayToDecimal(rightMesPart[0], "%8s") + "|koniec wiadomości");
 
         des.doPC1on56bitKey();
         System.out.println("Klucz w wersji 56 bit po PC1: " + Arrays.toString(des.getMainKey()) + "|koniec klucza");
@@ -68,14 +70,8 @@ class DESTest {
         for (int j = 0; j < des.getRoundKeys().length; j++) {
             System.out.println("Runda " + (j + 1) + ": " + des.arrayToDecimal(des.getRoundKeys()[j], "%6s") + "|koniec klucza");
         }
-        byte[] ebit = des.expandMessageWithEbitTable();
-        System.out.println(des.arrayToDecimal(ebit, "%6s"));
-        byte[] k = des.kOperation(ebit);
-        System.out.println(des.arrayToDecimal(k, "%6s"));
-        byte[] s = des.sBoxOperation(k);
-        System.out.println(des.arrayToDecimal(s, "%4s"));
-        byte[] f = des.fFunction(s);
-        System.out.println(des.arrayToDecimal(f, "%4s"));
+        des.encryptMessage();
+        System.out.println("Wiadomość zakodowana powyższym kluczem: " + des.arrayToDecimal(des.getFinalMessagePermutation(), "%8s"));
 
     }
 }
