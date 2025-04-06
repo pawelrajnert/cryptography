@@ -3,6 +3,7 @@ package cryptoDESX;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 /*
@@ -14,18 +15,22 @@ import java.util.Arrays;
 class DESTest {
     @Test
     @DisplayName("Klasa testowa do sprawdzania działania programu")
-    void desTest() {
+    void desTest() throws UnsupportedEncodingException {
         DES des = new DES();
-        String testMes = "abcdefgh";
+        String testMes = "\u0001\u0023\u0045\u0067\u0089\u00ab\u00cd\u00ef";
+        byte[] bytes = testMes.getBytes("ISO-8859-1");
+
         System.out.println("Wiadomość przed algorytmem: " + testMes + "|koniec wiadomości");
 
-        des.setMessage(testMes.getBytes());
+        des.setMessage(bytes);
         System.out.println("Wiadomość w postaci liczb ascii: " + Arrays.toString(des.getMessage()) + "|koniec wiadomości");
         System.out.println("Wiadomość w postaci bitowej: " + des.arrayToDecimal(des.getMessage(),"%8s") + "|koniec wiadomości");
 
+        String testKey = "\u0001\u0023\u0045\u0067\u0089\u00ab\u00cd\u00ef";
+        bytes = testKey.getBytes("ISO-8859-1");
 
-        String testKey = "krypto11";
-        des.setMainKey(testKey.getBytes());
+        des.setMainKey(bytes);
+
         System.out.println("Klucz główny: " + Arrays.toString(des.getMainKey()) + "|koniec klucza");
         System.out.println("Klucz główny: " + des.arrayToDecimal(des.getMainKey(), "%8s") + "|koniec klucza");
 
@@ -63,5 +68,14 @@ class DESTest {
         for (int j = 0; j < des.getRoundKeys().length; j++) {
             System.out.println("Runda " + (j + 1) + ": " + des.arrayToDecimal(des.getRoundKeys()[j], "%6s") + "|koniec klucza");
         }
+        byte[] ebit = des.expandMessageWithEbitTable();
+        System.out.println(des.arrayToDecimal(ebit, "%6s"));
+        byte[] k = des.kOperation(ebit);
+        System.out.println(des.arrayToDecimal(k, "%6s"));
+        byte[] s = des.sBoxOperation(k);
+        System.out.println(des.arrayToDecimal(s, "%4s"));
+        byte[] f = des.fFunction(s);
+        System.out.println(des.arrayToDecimal(f, "%4s"));
+
     }
 }

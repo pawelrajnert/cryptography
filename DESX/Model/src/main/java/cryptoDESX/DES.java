@@ -1,5 +1,7 @@
 package cryptoDESX;
 
+import java.io.UnsupportedEncodingException;
+
 public class DES {
     private byte[] mainKey;
     private byte[] leftKeyPart = new byte[4];
@@ -51,9 +53,13 @@ public class DES {
 
     // ustawiamy poprawny rozmiar wiadomości
     public void setMessage(byte[] message) {
-        String messageString = new String(message);
-        messageString = isMessageCorrect(messageString);
-        this.message = messageString.getBytes();
+        try {
+            String messageString = new String(message, "ISO-8859-1");
+            messageString = isMessageCorrect(messageString);
+            this.message = messageString.getBytes("ISO-8859-1");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
     // sprawdzamy czy klucz ma 8 bajtow, a jak nie to dopisujemy do niego spacje
@@ -70,9 +76,14 @@ public class DES {
 
     // ustawiamy klucz jesli wprowadzony jest poprawny
     public void setMainKey(byte[] key) {
-        String keyString = new String(key);
-        keyString = isKeyCorrect(keyString);
-        this.mainKey = keyString.getBytes();
+        try {
+            String keyString = new String(key, "ISO-8859-1");
+            keyString = isKeyCorrect(keyString);
+            this.mainKey = keyString.getBytes("ISO-8859-1");
+        }
+        catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 
     public byte[] getLeftMesPart() {
@@ -283,6 +294,76 @@ public class DES {
             }
             roundKeys[roundKey] = pc2OnKey;
         }
+    }
+
+    public byte[] expandMessageWithEbitTable() {    // rozszerzenie wiadomości przy wykorzystaniu EbitTable
+        byte[] messageWithEbitTable = new byte[8];      // 8 bajtów po 6 bitów każdy
+
+        int pom = 0;        // tak jak w przypadku PC2 - licznik bitów, do 48
+
+        for (int i = 0; i < 8; i++) {       // bo 8 bajtów
+            for (int j = 0; j < 6; j++) {       // bo 6 bitów w bajcie
+                int bitIndex = Permutation.EbitTable[i][j] - 1;         // pobranie indeksu bitu z tabeli
+                int byteIndex = bitIndex / 8;                       // obliczenie indeksu bajtu na podstawie indeksu bitu
+                int bitPosition = 7 - bitIndex % 8;                 // policzenie pozycji bitu na podstawie indeksu
+                boolean currentBit = (((rightMesPart[byteIndex]) >> bitPosition) & 1) == 1;        // operacje bitowe w celu wskazania wartości
+                // output tak jak w PC2 - na 6 bitów
+                int outByteIndex = pom / 6;
+                int outBitIndex = 5 - (pom % 6);
+
+                if (currentBit) {
+                    messageWithEbitTable[outByteIndex] |= (byte) (1 << outBitIndex);
+                } else {
+                    messageWithEbitTable[outByteIndex] &= (byte) ~(1 << outBitIndex);
+                }
+                pom++;
+            }
+        }
+
+        return messageWithEbitTable;
+    }
+
+    public byte[] kOperation(byte[] message) {
+        byte[] result = new byte[8];
+        for (int i = 0; i < 8; i++) {
+            result[i] = (byte) (message[i] ^ roundKeys[0][i]);
+        }
+        return result;
+    }
+
+    public byte[] sBoxOperation(byte[] message) {
+        byte[] result = new byte[8];
+        int[][][] sBox = {SBox.SBox1, SBox.SBox2, SBox.SBox3, SBox.SBox4,
+                          SBox.SBox5, SBox.SBox6, SBox.SBox7, SBox.SBox8};
+        for (int i = 0; i < 8; i++) {
+            int row = (message[i] >> 4) & 0b10 + (message[i] & 0b1);
+            int col = (message[i] >> 1) & 0b1111;
+            int sBoxResult = sBox[i][row][col];
+            result[i] = (byte) (sBoxResult ^ result[i]);
+        }
+        return result;
+    }
+
+    public byte[] fFunction(byte[] message) {
+        byte[] result = new byte[8];
+        int pom = 0;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 4; j++) {
+                int bitIndex = Permutation.P[i][j] - 1;
+                int byteIndex = bitIndex / 4;
+                int bitPosition = 3 - bitIndex % 4;
+                boolean currentBit = (((message[byteIndex]) >> bitPosition) & 1) == 1;
+                int outByteIndex = pom / 4;
+                int outBitIndex = 3 - (pom % 4);
+                if (currentBit) {
+                    result[outByteIndex] |= (byte) (1 << outBitIndex);
+                } else {
+                    result[outByteIndex] &= (byte) ~(1 << outBitIndex);
+                }
+                pom++;
+            }
+        }
+        return result;
     }
 }
 
