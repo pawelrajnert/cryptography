@@ -1,5 +1,5 @@
 package cryptoDESX;
-// initial commit
+
 public class SBox {
     // Wartości zgodnie z zaleceniami pochodzą z dokumentacji NIST:
     // https://csrc.nist.gov/files/pubs/fips/46/final/docs/nbs.fips.46.pdf
