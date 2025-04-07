@@ -7,7 +7,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /*
     Info:

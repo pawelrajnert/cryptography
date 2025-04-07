@@ -1,7 +1,6 @@
 package cryptoDESX;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 
 public class DES {
     private byte[] mainKey;
@@ -49,20 +48,20 @@ public class DES {
         return key;
     }
 
-    // ustawiamy klucz jesli wprowadzony jest poprawny. Od razu wykonujemy na nim wszystkie operacje.
+    // ustawiamy klucz jesli wprowadzony jest poprawny. Od razu wykonujemy na nim wszystkie operacje,
+    // tzn wywołujemy kolejne funkcje, które razem dążą do utworzenia 16 kluczy rundowych.
     public void setMainKey(String key) {
         try {
             this.mainKey = isKeyCorrect(key).getBytes("ISO-8859-1");
             doPC1on56bitKey();
-            //mainKey56bitSplitter();       // metoda ta się wykona w tym miejscu,
-            // ale zostanie ona wywołana przez doPC1on56bitKey();
+            // w tym miejscu zostanie wywołana jeszcze metoda mainKey56bitSplitter() przez doPC1on56bitKey();
             makeRoundKeys();
             doPC2OnRoundKeys();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
     }
-
+    // wyświetlanie liczb w postaci dwójkowej
     public static String arrayToDecimal(byte[] array, String version) {
         StringBuilder sb = new StringBuilder();
         for (byte a : array) {
@@ -72,7 +71,9 @@ public class DES {
         return sb.toString();
     }
 
-    // krok 1, wiadomosc jest poddana initial permutation
+    // Krok 1, wiadomość jest poddana initial permutation.
+    // Metoda jest przystosowana również do wykonywania finalnej permutacji, czyli ostatniego kroku,
+    // ponieważ wtedy wykonujemy to samo na wiadomości, ale korzystamy z tabeli odwrotnej permutacji
     private byte[] permutation(byte[] message, int isFinalPermutation) {
         int[][][] permutations = {Permutation.IP, Permutation.IP1};
         byte[] IPmessage = new byte[message.length];
@@ -80,10 +81,10 @@ public class DES {
             for (int j = 0; j < 8; j++) {
                 int bitIndex = permutations[isFinalPermutation][i][j] - 1; // pobieramy numer bitu
                 int byteIndex = bitIndex / 8; // informacja o tym w ktorym bajcie jest nasz obecnie rozwazany bit
-                int bitPossition = bitIndex % 8; // numer bitu w wyzej sprawdzanym bajcie
+                int bitPosition = bitIndex % 8; // numer bitu w wyzej sprawdzanym bajcie
 
                 // odczytujemy wartosc bitu
-                boolean currentBit = ((message[byteIndex] >> (7 - bitPossition)) & 1) == 1;
+                boolean currentBit = ((message[byteIndex] >> (7 - bitPosition)) & 1) == 1;
 
                 int outBitIndex = i * 8 + j; // po permutacji tutaj ma znalezc sie rozwazany bit
                 int outByteIndex = outBitIndex / 8; // informacja o bajcie
@@ -100,7 +101,7 @@ public class DES {
     }
 
     // dzielimy wiadomosc po initial permutation na 2 czesci- lewa i prawa (64 bity -> 2x 32bity)
-    public byte[][] messageAfterIPSplitter(byte[] message) {
+    private byte[][] messageAfterIPSplitter(byte[] message) {
         if (message.length != 8 || message == null) {
             int pom = message.length;
             throw new IllegalArgumentException("Wiadomość nie ma 8 bajtów, tylko ma ich: " + pom);
@@ -112,7 +113,7 @@ public class DES {
             left[i] = message[i]; // lewa czesc to bajty: 0, 1, 2, 3 (32 bity)
             right[i] = message[i + 4]; // prawa czesc to bajty: 4, 5, 6, 7 (32 bity)
         }
-        return new byte[][]{left, right};
+        return new byte[][]{left, right};   // zwracamy to jako tablicę dwuwymiarową, by z zewnątrz mieć dostęp do obu nar az
     }
 
     // klucz 64 bitowy poddajemy PC1, dzięki czemu usuniemy też bity parzystości i klucz będzie 56 bit
@@ -145,7 +146,7 @@ public class DES {
                 }
             }
         }
-        mainKey56bitSplitter(pc1OnKey);
+        mainKey56bitSplitter(pc1OnKey); // automatycznie dzielimy nasz klucz na części
     }
 
     // dzielimy 56 bitowy klucz na 2 x 28 bit podklucze
@@ -161,15 +162,15 @@ public class DES {
 
         for (int i = 0; i < 28; i++) { // dodajemy pierwsze 28 bit do lewej części klucza
             int byteIndex = i / 7; // rozwazany bajt (patrzymy gdzie trafi bit, 7 bitow w bajcie rozwazamy)
-            int bitPossition = 6 - (i % 7); // pozycja bitu w bajcie
+            int bitPosition = 6 - (i % 7); // pozycja bitu w bajcie
 
             // odczytujemy wartosc bitu
-            boolean currentBit = ((pc1OnKey[byteIndex] >> bitPossition) & 1) == 1;
+            boolean currentBit = ((pc1OnKey[byteIndex] >> bitPosition) & 1) == 1;
 
             if (currentBit == true) { // jesli bit to 1 to tak go ustawiamy
-                left[byteIndex] |= (1 << bitPossition);
+                left[byteIndex] |= (1 << bitPosition);
             } else { // jesli bit to 0 to zostawiamy go jako 0
-                left[byteIndex] &= ~(1 << bitPossition);
+                left[byteIndex] &= ~(1 << bitPosition);
             }
         }
         for (int j = 28; j < 56; j++) { // dodajemy drugie 28 bit do prawej części klucza
@@ -268,7 +269,10 @@ public class DES {
             roundKeys[roundKey] = pc2OnKey;
         }
     }
-
+    /*
+    Prawą część naszej wiadomości rozszerzamy do 48 bitów, korzystając z EbitTable.
+    Wynik zwracamy do metody keyOperation
+     */
     private byte[] expandMessageWithEbitTable(byte[] right) {    // rozszerzenie wiadomości przy wykorzystaniu EbitTable
         byte[] result = new byte[8];
 
@@ -294,8 +298,13 @@ public class DES {
         }
         return result;
     }
-
-    private byte[] kOperation(int runda, byte[] right) {
+    /*
+    Operacja z kluczem. Rozszerzoną wiadomość składającą się z 8 bajtów, na których korzystamy z 6 bitów
+    XORujemy z kluczem z danej rundy. Otrzymamy w ten sposób 8 bajtów, po 6 bitów każdy.
+    Na podstawie tych wyników odczytamy wartości z sBoxów.
+     */
+    private byte[] keyOperation(int runda, byte[] right) {
+        //
         byte[] result = new byte[8];
         byte[] expandedMessage = expandMessageWithEbitTable(right);
         for (int i = 0; i < 8; i++) {
@@ -303,32 +312,43 @@ public class DES {
         }
         return result;
     }
-
+    /*
+    Operacja z sBoxem. Mamy 8 sBoxów, dla każdego bajta. Nasze bajty mają 6 bitową postać.
+    Przekształcamy każdy 6-bitowy bajt do 4-bitowej postaci
+    Na przykładzie, jak to działa:
+    n-ty bajt wygląda następująco: 101011. Łączymy ze sobą 1 i 6 bit, oraz bity 2,3,4,5. Otrzymujemy 11 i 0101.
+    Wyniki przekształcamy na wartość dziesiętną. Zatem otrzymamy 11 -> 3 oraz 0101 -> 5.
+    Są to odpowiednio indeksy wiersza i kolumny z n-tego sBoxa.
+    Z nTego sBoxa odczytujemy wartość jaka się tam znajduję (załóżmy: 11).
+    Przekształcamy na postać dziesiętną, więc 11 -> 1011. Zatem ten n-ty bajt wyniesie 11.
+    UWAGA! Należy pamiętać, że indeksowanie wierszy i kolumn zaczynamy od 0, a nie od 1!
+     */
     private byte[] sBoxOperation(int runda, byte[] right) {
         byte[] result = new byte[8];
-        byte[] message = kOperation(runda, right);
+        byte[] message = keyOperation(runda, right);
         int[][][] sBox = {SBox.SBox1, SBox.SBox2, SBox.SBox3, SBox.SBox4,
                 SBox.SBox5, SBox.SBox6, SBox.SBox7, SBox.SBox8};
         for (int i = 0; i < 8; i++) {
-            int row = ((message[i] >> 5) & 0b1) << 1 | (message[i] & 0b1);
-            int col = (message[i] >> 1) & 0b1111;
+            int row = ((message[i] >> 5) & 0b1) << 1 | (message[i] & 0b1); // uzyskiwanie indeksu wiersza
+            int col = (message[i] >> 1) & 0b1111;   // uzyskiwanie indeksu kolumny
             int sBoxResult = sBox[i][row][col];
             result[i] = (byte) (sBoxResult ^ result[i]);
         }
         return result;
     }
-
+    // Funkcja F, która bezpośrednio i pośrednio wywołuje inne metody.
+    // A sama finalnie wykonuje permutację według tabeli P.
     private byte[] fFunction(int runda, byte[] right) {
         byte[] result = new byte[8];
         byte[] message = sBoxOperation(runda, right);
         int pom = 0;
         for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 4; j++) {
-                int bitIndex = Permutation.P[i][j] - 1;
-                int byteIndex = bitIndex / 4;
-                int bitPosition = 3 - bitIndex % 4;
-                boolean currentBit = (((message[byteIndex]) >> bitPosition) & 1) == 1;
-                int outByteIndex = pom / 4;
+            for (int j = 0; j < 4; j++) {       // na 4 bity zapiszemy
+                int bitIndex = Permutation.P[i][j] - 1;     // pobranie indeksu z tabeli
+                int byteIndex = bitIndex / 4;               // obliczenie, który to bajt
+                int bitPosition = 3 - bitIndex % 4;         // obliczenie pozycji bity.
+                boolean currentBit = (((message[byteIndex]) >> bitPosition) & 1) == 1;  // operacje bitowe
+                int outByteIndex = pom / 4; // wynik przekształcamy na bajt 4-bitowy
                 int outBitIndex = 3 - (pom % 4);
                 if (currentBit) {
                     result[outByteIndex] |= (byte) (1 << outBitIndex);
@@ -341,33 +361,37 @@ public class DES {
 
         return result;
     }
-
+    /*
+    Najważniejsza metoda programu. Przed jej użyciem klucz główny musi być ustawiony.
+    Oznaczenia w kodzie odwołują się do podpunktu 9) z instrukcji na dole kodu.
+    *) - oznaczenie, w jaki sposób deszyfrujemy wiadomość
+     */
     public byte[] encryptMessage(byte[] message, boolean isEncrypt) {
         if (mainKey != null && mainKey.length == 8) {
-            message = permutation(message, 0);
-            byte[][] messageParts = messageAfterIPSplitter(message);
+            message = permutation(message, 0);          // a)
+            byte[][] messageParts = messageAfterIPSplitter(message);    // początek b)
             byte[] left = messageParts[0];
-            byte[] right = messageParts[1];
+            byte[] right = messageParts[1];                             // koniec b)
 
-            for (int j = 1; j <= 16; j++) {
+            for (int j = 1; j <= 16; j++) {                             // c), d), e)
                 int runda = j;
-                if (isEncrypt) {
+                if (isEncrypt) {                                        // *)
                     runda = 17 - j;
                 }
-                byte[] result = fFunction(runda, right);
-                byte[] leftCopy = new byte[4];
+                byte[] result = fFunction(runda, right);                // c1 - c4
+                byte[] leftCopy = new byte[4];                          // d1
                 System.arraycopy(left, 0, leftCopy, 0, 4);
                 for (int i = 0; i < 4; i++) {
-                    left[i] = right[i];
-                    right[i] = (byte) ((((result[2 * i] & 0x0F) << 4) | (result[2 * i + 1] & 0x0F)) ^ leftCopy[i]);
+                    left[i] = right[i];                                                                             // d2
+                    right[i] = (byte) ((((result[2 * i] & 0x0F) << 4) | (result[2 * i + 1] & 0x0F)) ^ leftCopy[i]); // d3
                 }
 
             }
             for (int i = 0; i < 4; i++) {
-                message[i] = right[i];
-                message[i + 4] = left[i];
+                message[i] = right[i];      // f)
+                message[i + 4] = left[i];   // f)
             }
-            return permutation(message, 1);
+            return permutation(message, 1); // g)
         } else {
             throw new IllegalArgumentException("Nie można zaszyfrować - klucz nie został ustawiony!");
         }
@@ -392,6 +416,27 @@ Jak działa algorytm DES? (zmiany w działaniu DESX opisane będą w pliku klasy
 * klucz rundowy jest zapisany na 8 bajtach, ale korzystamy z odpowiedniej ilości bitów tylko jak wyżej
 8) każdy klucz rundowy poddajemy permutacji PC2
 * klucz rundowy po PC2 jest zapisany na 8 bajtach, ale korzystamy z odpowiedniej ilości bitów tylko jak wyżej
+9) szyfrujemy wiadomość (w przypadku naszego algorytmu metoda encryptMessage) w następujący sposób:
+    a) - Dokonujemy wstępnej permutacji wiadomości, wykorzystując metodę permutation (według tabeli IP).
+    b) - Dzielimy wiadomość na dwie równe części — lewą i prawą
+    c) - Wykonujemy 16 rund szyfrowania wiadomości wedle schematu:
+        c1) - rozszerzamy prawą część wiadomości z 32 do 48 bitów
+        c2) - na otrzymanym rozszerzeniu dokonujemy operacji XOR z kluczem z danej rundy
+        c3) - działanie z sBoxami, zamysł działania przy metodzie sBoxOperation
+        c4) - dokonujemy finalnej permutacji w końcowym etapie rundy w metodzie fFunction
+    d) - przechodzimy do kolejnej rundy, wykonując następujące operacje:
+        d1) - wykonujemy kopię lewej częśći wiadomości (32 bity)
+        d2) - przenosimy prawą część wiadomości do lewej części wiadomości
+        d3) - ustalamy nową prawą część wiadomości. Jest to po prostu operacja XOR
+              pomiędzy skopiowaną lewą częścią wiadomości a wynikiem rundy (c4)
+    e) Wracamy do podpunktu c) do momentu wykonania wszystkich rund
+    f) Finalny wynik łączymy w całość, zamieniając kolejność - najpierw prawa część, potem lewa
+    g) dokonujemy finalnej permutacji według tabeli IP-1, i zwracamy wynik.
+
+Możemy również deszyfrować wiadomości pod warunkiem, że znamy klucz.
+W takim wypadku postępujemy praktycznie tak samo jak w podpunkcie 9), różnica polega na tym,
+że klucze rundowe przekazujemy w odwrotnej kolejności - zaczynamy od ostatniego w pierwszej rundzie.
+
 
 Linki do dokumentacji:
 - wybor zmiennych (na ilu bajtach są zapisane)
