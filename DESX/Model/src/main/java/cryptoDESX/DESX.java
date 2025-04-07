@@ -3,15 +3,9 @@ package cryptoDESX;
 import java.io.UnsupportedEncodingException;
 
 public class DESX extends DES {
-    private final DES des;
     private byte[] initialKey;
     private byte[] finalKey;
-
-    public DESX(DES des) {
-        this.des = des;
-    }
-
-
+    
     public void setInitialKey(String initialKey) {
         try {
             this.initialKey = isKeyCorrect(initialKey).getBytes("ISO-8859-1");
@@ -34,6 +28,19 @@ public class DESX extends DES {
 
     public byte[] getFinalKey() {
         return finalKey;
+    }
+
+    public byte[] firstEncrypt(byte[] message) {
+        for (int i = 0; i < message.length; i++) {
+            message[i] = (byte) (initialKey[i] ^ message[i]);
+        }
+        return message;
+    }
+    public byte[] finalEncrypt(byte[] message) {
+        for (int i = 0; i < message.length; i++) {
+            message[i] = (byte) (finalKey[i] ^ message[i]);
+        }
+        return message;
     }
 }
 

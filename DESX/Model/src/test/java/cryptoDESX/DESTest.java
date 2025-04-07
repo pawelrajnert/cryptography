@@ -17,7 +17,7 @@ class DESTest {
     @DisplayName("Klasa testowa do sprawdzania działania programu")
     void desTest() throws UnsupportedEncodingException {
         DES des = new DES();
-        DESX desx = new DESX(des);
+        DESX desx = new DESX();
         String testMes = "\u00ab\u00ab\u00ab\u00ab\u00ab\u00ab\u00ab\u00ab";
         des.setMessage(testMes);
         System.out.println("Wiadomość przed algorytmem: " + testMes + "|koniec wiadomości");
@@ -26,7 +26,12 @@ class DESTest {
 
         String testKey = "\u00fd\u0023\u00dc\u0011\u0058\u00ab\u00fe\u00b3";
         des.setMainKey(testKey);
-        desx.setInitialKey(testKey);
+        desx.setInitialKey("923jfds2");
+        desx.setFinalKey("AKJSKHFd");
+        System.out.println("TEST DESX: ");
+        System.out.println("Klucz pierwszy: " + des.arrayToDecimal(desx.getInitialKey(), "%8s") + "|koniec pierwszego klucza");
+        System.out.println("Wiadomość w postaci bitowej: " + des.arrayToDecimal(des.getMessage(),"%8s") + "|koniec wiadomości");
+        System.out.println(des.arrayToDecimal(desx.firstEncrypt(des.getMessage()), "%8s"));
         System.out.println("Klucz główny: " + Arrays.toString(desx.getInitialKey()) + "|koniec klucza");
         System.out.println("Klucz główny: " + des.arrayToDecimal(desx.getInitialKey(), "%8s") + "|koniec klucza");
 
