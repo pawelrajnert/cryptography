@@ -17,19 +17,18 @@ class DESTest {
     @DisplayName("Klasa testowa do sprawdzania działania programu")
     void desTest() throws UnsupportedEncodingException {
         DES des = new DES();
+        DESX desx = new DESX(des);
         String testMes = "\u00ab\u00ab\u00ab\u00ab\u00ab\u00ab\u00ab\u00ab";
-        byte[] bytes = testMes.getBytes("ISO-8859-1");
-
+        des.setMessage(testMes);
         System.out.println("Wiadomość przed algorytmem: " + testMes + "|koniec wiadomości");
-
-        des.setMessage(bytes);
         System.out.println("Wiadomość w postaci liczb ascii: " + Arrays.toString(des.getMessage()) + "|koniec wiadomości");
         System.out.println("Wiadomość w postaci bitowej: " + des.arrayToDecimal(des.getMessage(),"%8s") + "|koniec wiadomości");
 
         String testKey = "\u00fd\u0023\u00dc\u0011\u0058\u00ab\u00fe\u00b3";
-        bytes = testKey.getBytes("ISO-8859-1");
-
-        des.setMainKey(bytes);
+        des.setMainKey(testKey);
+        desx.setInitialKey(testKey);
+        System.out.println("Klucz główny: " + Arrays.toString(desx.getInitialKey()) + "|koniec klucza");
+        System.out.println("Klucz główny: " + des.arrayToDecimal(desx.getInitialKey(), "%8s") + "|koniec klucza");
 
         System.out.println("Klucz główny: " + Arrays.toString(des.getMainKey()) + "|koniec klucza");
         System.out.println("Klucz główny: " + des.arrayToDecimal(des.getMainKey(), "%8s") + "|koniec klucza");

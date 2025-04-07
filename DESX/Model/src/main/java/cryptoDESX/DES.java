@@ -6,19 +6,18 @@ public class DES {
     private byte[] mainKey;
     private byte[] leftKeyPart = new byte[4];
     private byte[] rightKeyPart = new byte[4];
+    private byte[][] roundKeys = new byte[16][8];
     private byte[] message;
     private byte[][] leftMesParts = new byte[17][4];
     private byte[][] rightMesParts = new byte[17][4];
-    private byte[][] roundKeys = new byte[16][8];
     private byte[] finalMessage = new byte[8];
+    private byte[] finalMessagePermutation = new byte[8];
 
     public DES() {}
 
     public byte[] getFinalMessagePermutation() {
         return finalMessagePermutation;
     }
-
-    private byte[] finalMessagePermutation = new byte[8];
 
     public byte[] getMainKey() {
         return mainKey;
@@ -53,18 +52,16 @@ public class DES {
     }
 
     // ustawiamy poprawny rozmiar wiadomości
-    public void setMessage(byte[] message) {
+    public void setMessage(String message) {
         try {
-            String messageString = new String(message, "ISO-8859-1");
-            messageString = isMessageCorrect(messageString);
-            this.message = messageString.getBytes("ISO-8859-1");
+            this.message = isMessageCorrect(message).getBytes("ISO-8859-1");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
     }
 
     // sprawdzamy czy klucz ma 8 bajtow, a jak nie to dopisujemy do niego spacje
-    public String isKeyCorrect(String key) {
+    protected String isKeyCorrect(String key) {
         if (key == null || key.length() == 0 || key.length() > 8) {
             return "abcdefgh"; // jesli klucz jest niepoprawny, to ustawiamy narazie taki domyślny
         }
@@ -74,13 +71,10 @@ public class DES {
 
         return key;
     }
-
     // ustawiamy klucz jesli wprowadzony jest poprawny
-    public void setMainKey(byte[] key) {
+    public void setMainKey(String key) {
         try {
-            String keyString = new String(key, "ISO-8859-1");
-            keyString = isKeyCorrect(keyString);
-            this.mainKey = keyString.getBytes("ISO-8859-1");
+            this.mainKey = isKeyCorrect(key).getBytes("ISO-8859-1");
         }
         catch (UnsupportedEncodingException e) {
             e.printStackTrace();
