@@ -11,8 +11,8 @@ public class MenuApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(MenuApplication.class.getResource("menu-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 650, 450);
-        stage.setTitle("Hello!");
+        Scene scene = new Scene(fxmlLoader.load(), 1280, 720);
+        stage.setTitle("Szyfrowanie DESX");
         stage.setScene(scene);
         stage.show();
     }
