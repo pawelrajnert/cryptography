@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Test;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 /*
     Info:
     *   funkcja des.arrayToDecimal wyswietla liczbe w postaci dwójkowej, aby skorzystać z niej należy dopisać argument:
@@ -15,36 +18,23 @@ import java.util.Arrays;
 class DESTest {
     @Test
     @DisplayName("Klasa testowa do sprawdzania działania programu")
-    void desTest() {
+    void desTest() throws UnsupportedEncodingException {
         DESX desx = new DESX();
         String shortMes = desx.isMessageCorrect("abcd");
         System.out.println("Wiadomość za krotka po funkcji sprawdzajacej: " + shortMes + "|koniec wiadomości");
 
-        String testMes = "\u00ab\u00ab\u00ab\u00ab\u00ab\u00ab\u00ab\u00ab";
-        desx.setMessage(testMes);
+        String testMes = "kryptoxd";
+        byte[] testBytes = testMes.getBytes("ISO-8859-1");
         System.out.println("Wiadomość przed algorytmem: " + testMes + "|koniec wiadomości");
-        System.out.println("Wiadomość w postaci liczb ascii: " + Arrays.toString(desx.getMessage()) + "|koniec wiadomości");
-        System.out.println("Wiadomość w postaci bitowej: " + desx.arrayToDecimal(desx.getMessage(),"%8s") + "|koniec wiadomości");
+        System.out.println("Wiadomość w postaci liczb ascii: " + Arrays.toString(testBytes) + "|koniec wiadomości");
+        System.out.println("Wiadomość w postaci bitowej: " + desx.arrayToDecimal(testBytes,"%8s") + "|koniec wiadomości");
 
-        String testKey = "\u00fd\u0023\u00dc\u0011\u0058\u00ab\u00fe\u00b3";
-        desx.setMainKey(testKey);
+        desx.setMainKey("kDD3hVav");
         desx.setInitialKey("923jfds2");
         desx.setFinalKey("AKJSKHFd");
 
         System.out.println("Klucz główny: " + Arrays.toString(desx.getMainKey()) + "|koniec klucza");
         System.out.println("Klucz główny: " + desx.arrayToDecimal(desx.getMainKey(), "%8s") + "|koniec klucza");
-
-        desx.initialPermutation();
-        System.out.println("Wiadomość po IP: " + Arrays.toString(desx.getMessage()) + "|koniec wiadomości");
-        System.out.println("Wiadomość po IP: " + desx.arrayToDecimal(desx.getMessage(),"%8s") + "|koniec wiadomości");
-
-        desx.messageAfterIPSplitter();
-        byte[][] leftMesPart = desx.getLeftMesParts();
-        byte[][] rightMesPart = desx.getRightMesParts();
-        System.out.println("Lewa część wiadomości: " + Arrays.toString(leftMesPart[0]) + "|koniec wiadomości");
-        System.out.println("Lewa część wiadomości: " + desx.arrayToDecimal(leftMesPart[0], "%7s") + "|koniec wiadomości");
-        System.out.println("Prawa część wiadomości: " + Arrays.toString(rightMesPart[0]) + "|koniec wiadomości");
-        System.out.println("Prawa część wiadomości: " + desx.arrayToDecimal(rightMesPart[0], "%8s") + "|koniec wiadomości");
 
         System.out.println("Klucz w wersji 56 bit po PC1: " + Arrays.toString(desx.getMainKey()) + "|koniec klucza");
         System.out.println("Klucz w wersji 56 bit po PC1: " + desx.arrayToDecimal(desx.getMainKey(), "%7s") + "|koniec klucza");
@@ -63,8 +53,13 @@ class DESTest {
         for (int j = 0; j < desx.getRoundKeys().length; j++) {
             System.out.println("Runda " + (j + 1) + ": " + desx.arrayToDecimal(desx.getRoundKeys()[j], "%6s") + "|koniec klucza");
         }
-        desx.encryptMessage();
-        System.out.println("Wiadomość zakodowana powyższym kluczem: " + desx.arrayToDecimal(desx.getFinalMessagePermutation(), "%8s"));
+
+        byte[] encrypted = desx.encryptMessage(testBytes, false);
+        System.out.println("Wiadomość zakodowana powyższym kluczem: " + desx.arrayToDecimal(encrypted, "%8s"));
+        byte[] decrypted = desx.encryptMessage(encrypted, true);
+        System.out.println("Wiadomość odkodowana powyższym kluczem: " + desx.arrayToDecimal(decrypted, "%8s"));
+        System.out.println("Początkowa wiadomość: " + desx.arrayToDecimal(testBytes, "%8s"));
+        assertArrayEquals(testBytes, decrypted);
 
     }
 }

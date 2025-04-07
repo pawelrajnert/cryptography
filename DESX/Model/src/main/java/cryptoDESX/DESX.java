@@ -26,7 +26,7 @@ public class DESX extends DES {
 
     public void setFinalKey(String finalKey) {
         try {
-            this.initialKey = isKeyCorrect(finalKey).getBytes("ISO-8859-1");
+            this.finalKey = isKeyCorrect(finalKey).getBytes("ISO-8859-1");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -44,18 +44,47 @@ public class DESX extends DES {
     Operacje XOR wykonywane przed oraz po całym algorytmie.
     W przypadku deszyfrowania, operacje te wykonujemy w odwrotnej kolejności
      */
-    public byte[] firstEncrypt(byte[] message) {
+    private byte[] firstEncrypt(byte[] message) {
         for (int i = 0; i < 8; i++) {
             message[i] = (byte) (initialKey[i] ^ message[i]);
         }
         return message;
     }
 
-    public byte[] finalEncrypt(byte[] message) {
+    private byte[] finalEncrypt(byte[] message) {
         for (int i = 0; i < 8; i++) {
             message[i] = (byte) (finalKey[i] ^ message[i]);
         }
         return message;
+    }
+
+    @Override
+    public byte[] encryptMessage(byte[] message, boolean isEncrypt) {
+        byte[] result = new byte[8];
+        System.arraycopy(message, 0, result, 0, 8);
+        System.out.println("DESX encryptMessage");
+        System.out.println("Initial key: " + arrayToDecimal(initialKey, "%8s"));
+        System.out.println("Final key: " + arrayToDecimal(finalKey, "%8s"));
+        System.out.println("DES key: " + arrayToDecimal(getMainKey(), "%8s"));
+        if (isEncrypt) {
+            System.out.println("DESX decrypt is called");
+            System.out.println("Initial message: " + arrayToDecimal(result, "%8s"));
+            result = finalEncrypt(result);
+            System.out.println("After first encrypt: " + arrayToDecimal(result, "%8s"));
+            result = super.encryptMessage(result, isEncrypt);
+            System.out.println("DES has been called, result: " + arrayToDecimal(result, "%8s"));
+            result = firstEncrypt(result);
+        }
+        else {
+            System.out.println("DESX encrypt is called");
+            System.out.println("Initial message: " + arrayToDecimal(result, "%8s"));
+            result = firstEncrypt(result);
+            System.out.println("After first encrypt: " + arrayToDecimal(result, "%8s"));
+            result = super.encryptMessage(result, isEncrypt);
+            System.out.println("DES has been called, result: " + arrayToDecimal(result, "%8s"));
+            result = finalEncrypt(result);
+        }
+        return result;
     }
 }
 
