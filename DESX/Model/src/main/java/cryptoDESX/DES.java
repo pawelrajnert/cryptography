@@ -71,10 +71,15 @@ public class DES {
 
         return key;
     }
-    // ustawiamy klucz jesli wprowadzony jest poprawny
+    // ustawiamy klucz jesli wprowadzony jest poprawny. Od razu wykonujemy na nim wszystkie operacje.
     public void setMainKey(String key) {
         try {
             this.mainKey = isKeyCorrect(key).getBytes("ISO-8859-1");
+            doPC1on56bitKey();
+            //mainKey56bitSplitter();       // metoda ta się wykona w tym miejscu,
+                                            // ale zostanie ona wywołana przez doPC1on56bitKey();
+            makeRoundKeys();
+            doPC2OnRoundKeys();
         }
         catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -138,7 +143,7 @@ public class DES {
     }
 
     // klucz 64 bitowy poddajemy PC1, dzięki czemu usuniemy też bity parzystości i klucz będzie 56 bit
-    public void doPC1on56bitKey() {
+    private void doPC1on56bitKey() {
         if (mainKey.length != 8 || mainKey == null) {
             int pom = mainKey.length;
             throw new IllegalArgumentException("Klucz nie ma 8 bajtów, tylko ma ich: " + pom);
@@ -167,14 +172,14 @@ public class DES {
                 }
             }
         }
-        mainKey = pc1OnKey;
+        mainKey56bitSplitter(pc1OnKey);
     }
 
     // dzielimy 56 bitowy klucz na 2 x 28 bit podklucze
-    public void mainKey56bitSplitter() {
+    private void mainKey56bitSplitter(byte[] pc1OnKey) {
         // klucz powinien miec 56 bitow ALE ZAPISUJEMY TO NA 8 BAJTACH I IGNORUJEMY BIT PARZYSTOŚCI, dlatego sprawdzamy czy ma 8 bajtow
-        if (mainKey.length != 8 || mainKey == null) {
-            int pom = mainKey.length;
+        if (pc1OnKey.length != 8 || pc1OnKey == null) {
+            int pom = pc1OnKey.length;
             throw new IllegalArgumentException("Klucz nie ma 8 bajtów, tylko ma ich: " + pom);
         }
 
@@ -186,7 +191,7 @@ public class DES {
             int bitPossition = 6 - (i % 7); // pozycja bitu w bajcie
 
             // odczytujemy wartosc bitu
-            boolean currentBit = ((mainKey[byteIndex] >> bitPossition) & 1) == 1;
+            boolean currentBit = ((pc1OnKey[byteIndex] >> bitPossition) & 1) == 1;
 
             if (currentBit == true) { // jesli bit to 1 to tak go ustawiamy
                 left[byteIndex] |= (1 << bitPossition);
@@ -199,7 +204,7 @@ public class DES {
             int bitPossition = 6 - ((j - 28) % 7); // pozycja bitu w bajcie
 
             // odczytujemy wartosc bitu
-            boolean currentBit = ((mainKey[j / 7] >> bitPossition) & 1) == 1;
+            boolean currentBit = ((pc1OnKey[j / 7] >> bitPossition) & 1) == 1;
 
             if (currentBit == true) { // jesli bit to 1 to tak go ustawiamy
                 right[byteIndex] |= (1 << bitPossition);
@@ -212,7 +217,7 @@ public class DES {
     }
 
     // tworzymy 16 kluczy dla kazdej z rund
-    public void makeRoundKeys() {
+    private void makeRoundKeys() {
         if (leftKeyPart.length != 4 || rightKeyPart.length != 4) {
             int pomL = leftKeyPart.length;
             int pomR = rightKeyPart.length;
@@ -242,7 +247,7 @@ public class DES {
         }
     }
 
-    public void rotateLeftSingleKey(byte[] key, int shiftAmount) {
+    private void rotateLeftSingleKey(byte[] key, int shiftAmount) {
         // wczytujemy nasza liczbe z tablicy bajtow do inta (mozemy dzialac na incie bo w javie int 64 bitowy jest na 4 bajtach)
         int keyPart = ((key[0] & 127) << 21) | ((key[1] & 127) << 14) | ((key[2] & 127) << 7) | (key[3] & 127);
 
@@ -256,7 +261,7 @@ public class DES {
         key[3] = (byte) (keyPart & 127);
     }
 
-    public void doPC2OnRoundKeys() { // permutacja działa jak PC1, tylko tym razem robimy z 56 bitów 48 (DALEJ ZAPISUJEMY TO NA 8 BAJTACH, ALE KORZYSTAMY TYLKO Z 6 BITOW NA BAJT)
+    private void doPC2OnRoundKeys() { // permutacja działa jak PC1, tylko tym razem robimy z 56 bitów 48 (DALEJ ZAPISUJEMY TO NA 8 BAJTACH, ALE KORZYSTAMY TYLKO Z 6 BITOW NA BAJT)
         for (int roundKey = 0; roundKey < 16; roundKey++) {
             if (roundKeys[roundKey] == null || roundKeys[roundKey].length != 8) {
                 int pom = roundKeys[roundKey].length;
