@@ -79,7 +79,14 @@ public class MenuController {
             showAlert("Klucz niepoprawny", "Wprowadzono niepoprawny klucz.");
         }
     }
-
+    /*
+    Metoda do wczytywania plików. Zakłada ona, że wczytywany plik nie jest zakodowany.
+    Przy wczytywaniu pliku, ustawia ona 2 ważne rzeczy — encodeTextArea oraz zmienną textToSave.
+    encodeTextArea pokazuje na ekranie odczytany tekst, korzystając z kodowania UTF_8.
+    Natomiast textToSave w przyszłości będzie po to, by użytkownik mógł zapisać odszyfrowane dane do pliku.
+    To na tej zmiennej będą przeprowadzane kolejne operacje.
+    Wyłączamy także możliwość edytowania encodeTextArea. Odblokuje się ona wraz z zaszyfrowaniem danych.
+     */
     @FXML
     private void binaryLoaderDecoded() {
         FileChooser fileChooser = new FileChooser();
@@ -99,7 +106,10 @@ public class MenuController {
             }
         }
     }
-
+    /*
+    Na ogół zasada działania jest podobna, ale metoda ta zakłada, że pracujemy na zakodowanym już pliku,
+    zatem nie ustawia zmiennej textToSave, gdyż procedura zapisu będzie inna.
+     */
     @FXML
     private void binaryLoaderEncoded() {
         FileChooser fileChooser = new FileChooser();
@@ -118,7 +128,10 @@ public class MenuController {
             }
         }
     }
-
+    /*
+    Zapis zaszyfrowanych danych do pliku. decryptedBytes zostaną ustawione przez metodę deszyfrującą.
+    Jeśli takowe istnieją, to je zapisujemy, w przeciwnym razie takich danych po prostu nie zapiszemy.
+     */
     @FXML
     private void binarySaverDecoded() {
         FileChooser fileChooser = new FileChooser();
@@ -134,7 +147,11 @@ public class MenuController {
             showAlert("Zapisano odszyfrowany plik binarny", "Poprawnie zapisano dane do pliku: " + file.getName());
         }
     }
-
+    /*
+    Zapis normalnych/odszyfrowanych danych do pliku.
+    Jeśli w tekstArea nie znajdują się żadne dane, to naturalnie ich nie zapisuejmy.
+    W przeciwnym razie pobieramy te dane i je zapisujemy.
+     */
     @FXML
     private void binarySaverEncoded() {
         FileChooser fileChooser = new FileChooser();
@@ -151,16 +168,26 @@ public class MenuController {
             showAlert("Zapisano zakodowany plik binarny", "Poprawnie zapisano dane do pliku: " + file.getName());
         }
     }
-
+    /*
+    Szyfrowanie danych. Na początek sprawdzamy, czy użytkownik wprowadził klucze.
+    Potem odblokowujemy możliwość edytowania pola z danymi do zaszyfrowania.
+    Oczywiście nie musiało być ono zablokowane, jest ono blokowane po odczycie danych z pliku.
+    Następnie sprawdzamy, czy w ogóle mamy cokolwiek do kodowania.
+    Kolejnym krokiem jest ustalenie, skąd pobieramy dane. Jeśli textToSave jest nullem/pusty,
+    to oznacza to, że użytkownik wpisał dane. Wówczas konwertujemy tekst z encodeTextArea na bajty i wykorzystujemy UTF-8.
+    Później przekształcamy to na format Base64, by nie występowały problemy związane ze znakami specjalnymi w algorytmie.
+    Natomiast jeśli textToSave coś zawierał, to pobieramy te dane bezpośrednio, bo dane tam już były zapisane w formacie Base64.
+    Finalnie te dane i tak zamieniamy na UTF-8, ponieważ tutaj problem ze znakami specjalnymi już nie będzie występował.
+     */
     @FXML
     private void encodeData() {
+        if (desx.getMainKey() == null || desx.getInitialKey() == null || desx.getFinalKey() == null) {
+            showAlert("Błąd", "Nie ustawiono wszystkich kluczy.");
+            return;
+        }
         encodeTextArea.setEditable(true);
         if (encodeTextArea.getText().equals("")) {
             showAlert("Błąd", "Pole tekstowe jest puste, nie można zakodować danych.");
-            return;
-        }
-        if (desx.getMainKey() == null || desx.getInitialKey() == null || desx.getFinalKey() == null) {
-            showAlert("Błąd", "Nie ustawiono wszystkich kluczy.");
             return;
         }
         decodeTextArea.clear();
@@ -176,6 +203,7 @@ public class MenuController {
 
         for (int i = 0; i < blockCount; i++) {
             byte[] block = Arrays.copyOf(Arrays.copyOfRange(data, i * 8, Math.min((i + 1) * 8, data.length)), 8); // przetwazamy blok po bloku
+            // bierzemy minimum z (i+1) * 8 lub rozmiaru danych, by nie przekroczyć indeksu tablicy.
             byte[] encrypted = desx.encryptMessage(block, false); // szyfrujemy kazdy blok
             result.append(Base64.getEncoder().encodeToString(encrypted)); // przetwarzamy do base64 zeby bylo to czytelne do odczytu
             if (i < blockCount - 1) { // jesli nie jest to ostatni blok to robimy spacje po bloku zeby ulatwic potem odkodowanie
@@ -186,9 +214,18 @@ public class MenuController {
         showAlert("Udało się", "Zakodowano dane.");
         textToSave = null;
     }
-
+    /*
+    Tak samo jak przy kodowaniu, najpierw sprawdzamy klucze, odblokowujemy textArea, sprawdzamy czy wiadomość istnieje.
+    Podobnie jak w przypadku szyfrowania, będziemy ustawiać jedne dane dla użytkownika w oknie tekstowym,
+    a dane zapisane w formacie base64 będą wykorzystywane do plików.
+     */
     @FXML
     private void decodeData() {
+        if (desx.getMainKey() == null || desx.getInitialKey() == null || desx.getFinalKey() == null) {
+            showAlert("Błąd", "Nie ustawiono wszystkich kluczy.");
+            return;
+        }
+        encodeTextArea.setEditable(true);
         if (encodeTextArea.getText().equals("")) {
             showAlert("Błąd", "Pole tekstowe jest puste, nie można odkodować danych.");
             return;
@@ -201,7 +238,7 @@ public class MenuController {
                 byte[] decrypted = desx.encryptMessage(encrypted, true); // deszyfrujemy dany blok
                 output.append(new String(decrypted, StandardCharsets.UTF_8));
             }
-            String base64Result = output.toString().replaceAll("\u0000+$", "");
+            String base64Result = output.toString().replaceAll("\u0000+$", ""); // usuwamy wszystkie puste znaki, jeśli takowe wystąpiły
             decryptedBytes = Base64.getDecoder().decode(base64Result);
             String text = new String(decryptedBytes, StandardCharsets.UTF_8);
             decodeTextArea.setText(text);
