@@ -93,7 +93,7 @@ public class MenuController {
                 encodeTextArea.setText(text);
                 showAlert("Wczytano plik binarny", "Poprawnie wczytano dane z pliku: " + file.getName());
             } else {
-                showAlert("Bląd odczytu danych", "Nie udało się odczytać danych z pliku tekstowego: " + file.getName());
+                showAlert("Bląd odczytu danych", "Nie udało się odczytać danych z pliku binarnego: " + file.getName());
             }
         }
     }
@@ -104,6 +104,7 @@ public class MenuController {
             showAlert("Błąd", "Pole tekstowe jest puste, nie można zakodować danych.");
         }
 
+        decodeTextArea.clear();
         String input = encodeTextArea.getText().trim();
         byte[] data = input.getBytes(StandardCharsets.UTF_8);
         des.isMessageCorrect(input);
@@ -119,6 +120,7 @@ public class MenuController {
             }
         }
         encodeTextArea.setText(result.toString());
+        showAlert("Udało się","Zakodowano dane.");
     }
 
     @FXML
@@ -136,6 +138,7 @@ public class MenuController {
             output.append(new String(decrypted, StandardCharsets.UTF_8));
         }
         decodeTextArea.setText(output.toString());
+        showAlert("Udało się","Odkodowano dane.");
     }
 
     private void showAlert(String title, String message) {
