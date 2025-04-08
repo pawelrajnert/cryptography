@@ -1,7 +1,6 @@
 package cryptodesx.view;
 
 import cryptoDESX.BinaryDao;
-import cryptoDESX.DES;
 import cryptoDESX.DESX;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -16,7 +15,6 @@ import java.util.Arrays;
 import java.util.Base64;
 
 public class MenuController {
-    private DES des = new DES();
     private DESX desx = new DESX();
 
     @FXML
@@ -44,40 +42,44 @@ public class MenuController {
     @FXML
     private void DESKeySetter() {
         String key = DESKey.getText();
-        if (key.length() <= 8 && !key.isEmpty()) {
+        try {
             desx.setMainKey(key);
             showAlert("Klucz poprawny", "Wprowadzono klucz główny DES.");
-        } else {
+            System.out.println("Klucz główny DES: " + desx.arrayToDecimal(desx.getMainKey(), "%8s") + "|koniec klucza");
+            System.out.println(Arrays.toString(desx.getMainKey()) + "|koniec klucza");
+        } catch (NullPointerException e) {
             showAlert("Klucz niepoprawny", "Wprowadzono niepoprawny klucz.");
         }
-        System.out.println("Klucz główny DES: " + desx.arrayToDecimal(desx.getMainKey(), "%8s") + "|koniec klucza");
-        System.out.println(Arrays.toString(desx.getMainKey()) + "|koniec klucza");
+
     }
 
     @FXML
     private void DESXKeySetter1() {
         String key = DESXKey1.getText();
-        if (key.length() <= 8 && !key.isEmpty()) {
+        try {
             desx.setInitialKey(key);
             showAlert("Klucz poprawny", "Wprowadzono pierwszy klucz do DESX.");
-        } else {
+            System.out.println("Pierwszy klucz DESX: " + desx.arrayToDecimal(desx.getInitialKey(), "%8s") + "|koniec klucza");
+            System.out.println(Arrays.toString(desx.getInitialKey()) + "|koniec klucza");
+        }
+        catch (NullPointerException e) {
             showAlert("Klucz niepoprawny", "Wprowadzono niepoprawny klucz.");
         }
-        System.out.println("Pierwszy klucz DESX: " + desx.arrayToDecimal(desx.getInitialKey(), "%8s") + "|koniec klucza");
-        System.out.println(Arrays.toString(desx.getInitialKey()) + "|koniec klucza");
+
     }
 
     @FXML
     private void DESXKeySetter2() {
         String key = DESXKey2.getText();
-        if (key.length() <= 8 && !key.isEmpty()) {
+        try {
             desx.setFinalKey(key);
             showAlert("Klucz poprawny", "Wprowadzono drugi klucz do DESX.");
-        } else {
+            System.out.println("Drugi klucz DESX: " + desx.arrayToDecimal(desx.getFinalKey(), "%8s") + "|koniec klucza");
+            System.out.println(Arrays.toString(desx.getFinalKey()) + "|koniec klucza");
+        } catch (NullPointerException e) {
             showAlert("Klucz niepoprawny", "Wprowadzono niepoprawny klucz.");
         }
-        System.out.println("Drugi klucz DESX: " + desx.arrayToDecimal(desx.getFinalKey(), "%8s") + "|koniec klucza");
-        System.out.println(Arrays.toString(desx.getFinalKey()) + "|koniec klucza");
+
     }
 
     @FXML
@@ -160,7 +162,7 @@ public class MenuController {
         decodeTextArea.clear();
         String input = encodeTextArea.getText().trim();
         byte[] data = input.getBytes(StandardCharsets.UTF_8);
-        des.isMessageCorrect(input);
+        desx.isMessageCorrect(input);
         int blockCount = (data.length + 7) / 8;
         StringBuilder result = new StringBuilder();
 
