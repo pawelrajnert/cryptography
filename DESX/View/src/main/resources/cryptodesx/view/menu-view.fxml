@@ -57,7 +57,8 @@
             </font>
         </Text>
 
-        <TextArea fx:id="encodeTextArea" layoutX="90.0" layoutY="323.0" prefHeight="158.0" prefWidth="1072.0"/>
+        <TextArea fx:id="encodeTextArea" layoutX="90.0" layoutY="323.0"
+                  prefHeight="158.0" prefWidth="1072.0" editable="true"/>
 
         <TextArea fx:id="decodeTextArea" layoutX="90.0" layoutY="548.0" prefHeight="158.0" prefWidth="1072.0"/>
         <Button layoutX="858.0" layoutY="253.0" mnemonicParsing="false" onAction="#binarySaverDecoded" prefHeight="40.0"
