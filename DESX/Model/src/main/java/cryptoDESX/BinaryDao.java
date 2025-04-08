@@ -19,7 +19,11 @@ public class BinaryDao<T> implements Dao<T> {
 
     @Override
     public void write(String name, T obj) {
-
+        try {
+            Files.write(Path.of(name), (byte[]) obj);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

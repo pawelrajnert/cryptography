@@ -39,7 +39,7 @@ public class DES {
     // sprawdzamy czy klucz ma 8 bajtow, a jak nie to dopisujemy do niego spacje
     protected String isKeyCorrect(String key) {
         if (key == null || key.length() == 0 || key.length() > 8) {
-            return "abcdefgh"; // jesli klucz jest niepoprawny, to ustawiamy narazie taki domyślny
+            return null; // jesli klucz jest niepoprawny, to ustawiamy narazie taki domyślny
         }
         while (key.length() < 8) {
             key += " ";

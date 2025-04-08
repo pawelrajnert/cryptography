@@ -44,7 +44,7 @@ public class MenuController {
     @FXML
     private void DESKeySetter() {
         String key = DESKey.getText();
-        if (key.length() <= 8) {
+        if (key.length() <= 8 && !key.isEmpty()) {
             desx.setMainKey(key);
             showAlert("Klucz poprawny", "Wprowadzono klucz główny DES.");
         } else {
@@ -57,7 +57,7 @@ public class MenuController {
     @FXML
     private void DESXKeySetter1() {
         String key = DESXKey1.getText();
-        if (key.length() <= 8) {
+        if (key.length() <= 8 && !key.isEmpty()) {
             desx.setInitialKey(key);
             showAlert("Klucz poprawny", "Wprowadzono pierwszy klucz do DESX.");
         } else {
@@ -70,7 +70,7 @@ public class MenuController {
     @FXML
     private void DESXKeySetter2() {
         String key = DESXKey2.getText();
-        if (key.length() <= 8) {
+        if (key.length() <= 8 && !key.isEmpty()) {
             desx.setFinalKey(key);
             showAlert("Klucz poprawny", "Wprowadzono drugi klucz do DESX.");
         } else {
@@ -81,7 +81,7 @@ public class MenuController {
     }
 
     @FXML
-    private void binaryLoader() {
+    private void binaryLoaderDecoded() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Wybierz dowolny plik binarny do zaszyfrowania: ");
         File file = fileChooser.showOpenDialog(new Stage());
@@ -89,7 +89,7 @@ public class MenuController {
             BinaryDao<byte[]> dao = new BinaryDao<>();
             byte[] textBinary = dao.read(file.getAbsolutePath());
             if (textBinary != null) {
-                String text = new String(textBinary, StandardCharsets.UTF_8);
+                String text = Base64.getEncoder().encodeToString(textBinary);
                 encodeTextArea.setText(text);
                 showAlert("Wczytano plik binarny", "Poprawnie wczytano dane z pliku: " + file.getName());
             } else {
@@ -99,9 +99,62 @@ public class MenuController {
     }
 
     @FXML
+    private void binaryLoaderEncoded() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Wybierz zakodowany plik binarny do odczytu: ");
+        File file = fileChooser.showOpenDialog(new Stage());
+
+        if (file != null) {
+            BinaryDao<byte[]> dao = new BinaryDao<>();
+            byte[] data = dao.read(file.getAbsolutePath());
+            if (data != null) {
+                String encodedText = new String(data, StandardCharsets.UTF_8);
+                encodeTextArea.setText(encodedText);
+                showAlert("Wczytano zakodowany plik binarny", "Poprawnie wczytano dane z pliku: " + file.getName());
+            } else {
+                showAlert("Bląd odczytu danych", "Nie udało się odczytać danych z zakodowanego pliku binarnego: " + file.getName());
+            }
+        }
+    }
+
+    @FXML
+    private void binarySaverDecoded() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Wybierz gdzie chcesz zapisac odszyfrowany plik:");
+        File file = fileChooser.showSaveDialog(new Stage());
+
+        if (file != null) {
+            BinaryDao<byte[]> dao = new BinaryDao<>();
+            byte[] dataToSave = Base64.getDecoder().decode(decodeTextArea.getText());
+            dao.write(file.getAbsolutePath(), dataToSave);
+            showAlert("Zapisano odkodowany plik binarny", "Poprawnie zapisane dane do pliku: " + file.getName());
+        }
+    }
+
+    @FXML
+    private void binarySaverEncoded() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Wybierz gdzie chcesz zapisac zaszyfrowany plik:");
+        File file = fileChooser.showSaveDialog(new Stage());
+
+        if (file != null) {
+            BinaryDao<byte[]> dao = new BinaryDao<>();
+            byte[] dataToSave = encodeTextArea.getText().getBytes(StandardCharsets.UTF_8);
+            dao.write(file.getAbsolutePath(), dataToSave);
+            showAlert("Zapisano zakodowany plik binarny", "Poprawnie zapisane dane do pliku: " + file.getName());
+        }
+    }
+
+    @FXML
     private void encodeData() {
         if (encodeTextArea.getText().equals("")) {
             showAlert("Błąd", "Pole tekstowe jest puste, nie można zakodować danych.");
+            return;
+        }
+
+        if (desx.getMainKey() == null || desx.getInitialKey() == null || desx.getFinalKey() == null) {
+            showAlert("Błąd", "Nie ustawiono wszystkich kluczy.");
+            return;
         }
 
         decodeTextArea.clear();
@@ -120,13 +173,14 @@ public class MenuController {
             }
         }
         encodeTextArea.setText(result.toString());
-        showAlert("Udało się","Zakodowano dane.");
+        showAlert("Udało się", "Zakodowano dane.");
     }
 
     @FXML
     private void decodeData() {
         if (encodeTextArea.getText().equals("")) {
             showAlert("Błąd", "Pole tekstowe jest puste, nie można odkodować danych.");
+            return;
         }
 
         String input = encodeTextArea.getText().trim();
@@ -138,7 +192,7 @@ public class MenuController {
             output.append(new String(decrypted, StandardCharsets.UTF_8));
         }
         decodeTextArea.setText(output.toString());
-        showAlert("Udało się","Odkodowano dane.");
+        showAlert("Udało się", "Odkodowano dane.");
     }
 
     private void showAlert(String title, String message) {
