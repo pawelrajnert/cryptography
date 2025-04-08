@@ -13,6 +13,7 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Base64;
 
 public class MenuController {
     private DES des = new DES();
@@ -44,13 +45,13 @@ public class MenuController {
     private void DESKeySetter() {
         String key = DESKey.getText();
         if (key.length() <= 8) {
-            des.setMainKey(key);
+            desx.setMainKey(key);
             showAlert("Klucz poprawny", "Wprowadzono klucz główny DES.");
         } else {
             showAlert("Klucz niepoprawny", "Wprowadzono niepoprawny klucz.");
         }
-        System.out.println("Klucz główny DES: " + des.arrayToDecimal(des.getMainKey(), "%8s") + "|koniec klucza");
-        System.out.println(Arrays.toString(des.getMainKey()) + "|koniec klucza");
+        System.out.println("Klucz główny DES: " + desx.arrayToDecimal(desx.getMainKey(), "%8s") + "|koniec klucza");
+        System.out.println(Arrays.toString(desx.getMainKey()) + "|koniec klucza");
     }
 
     @FXML
@@ -99,12 +100,42 @@ public class MenuController {
 
     @FXML
     private void encodeData() {
+        if (encodeTextArea.getText().equals("")) {
+            showAlert("Błąd", "Pole tekstowe jest puste, nie można zakodować danych.");
+        }
 
+        String input = encodeTextArea.getText().trim();
+        byte[] data = input.getBytes(StandardCharsets.UTF_8);
+        des.isMessageCorrect(input);
+        int blockCount = (data.length + 7) / 8;
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < blockCount; i++) {
+            byte[] block = Arrays.copyOf(Arrays.copyOfRange(data, i * 8, (i + 1) * 8), 8); // przetwazamy blok po bloku
+            byte[] encrypted = desx.encryptMessage(block, false); // szyfrujemy kazdy blok
+            result.append(Base64.getEncoder().encodeToString(encrypted)); // przetwarzamy do base64 zeby bylo to czytelne do odczytu
+            if (i < blockCount - 1) { // jesli nie jest to ostatni blok to robimy spacje po bloku zeby ulatwic potem odkodowanie
+                result.append(" ");
+            }
+        }
+        encodeTextArea.setText(result.toString());
     }
 
     @FXML
     private void decodeData() {
+        if (encodeTextArea.getText().equals("")) {
+            showAlert("Błąd", "Pole tekstowe jest puste, nie można odkodować danych.");
+        }
 
+        String input = encodeTextArea.getText().trim();
+
+        StringBuilder output = new StringBuilder();
+        for (String block : input.split(" ")) { // mamy pomocnicze spacje dodane przy szyfrowaniu, dlatego tak szukamy bloków
+            byte[] encrypted = Base64.getDecoder().decode(block); // wracamy do postaci binarnej (z postaci czytelnej dla nas)
+            byte[] decrypted = desx.encryptMessage(encrypted, true); // deszyfrujemy dany blok
+            output.append(new String(decrypted, StandardCharsets.UTF_8));
+        }
+        decodeTextArea.setText(output.toString());
     }
 
     private void showAlert(String title, String message) {
