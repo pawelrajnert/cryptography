@@ -13,8 +13,7 @@ This repository contains implementations of the DESX algorithm and the knapsack 
 ## Zadania
 
 ### Wykonane zadania:
-
+- [x] Algorytym DESX
 
 ### Do zrobienia:
-- [ ] Algorytym DESX
 - [ ] Algorytm plecakowy
