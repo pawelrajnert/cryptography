@@ -46,6 +46,7 @@ public class MainController {
         pubKey.setEditable(false);
         nBox.setEditable(false);
         mBox.setEditable(false);
+        lowerText.setEditable(false);
     }
 
     @FXML
@@ -275,6 +276,7 @@ public class MainController {
             configureKnapsack();
             String decrypted = new String(knap.decrypt(toDecode));
             upperText.setText(decrypted);
+            showAlert("Odkodowano wiadomość","Udało się odkodować wiadomość.");
         }
         catch (Exception e) {
             showAlert("Błąd!","Nie udało się odkodować wiadomości.");
@@ -295,6 +297,7 @@ public class MainController {
             String base64CipherText = DataConverter.showCipherText(cipherText);
             lowerText.setText(base64CipherText);
             upperText.clear();
+            showAlert("Zakodowano wiadomość","Udało się zakodować wiadomość.");
         }
         catch (Exception e) {
             showAlert("Błąd!","Nie udało się zakodować wiadomości.");
