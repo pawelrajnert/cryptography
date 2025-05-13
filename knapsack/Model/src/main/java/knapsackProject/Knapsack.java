@@ -9,9 +9,7 @@ public class Knapsack {
     private int n;
     private int m;
 
-    public Knapsack() {
-        generateKeys();
-    }
+    public Knapsack() { }
 
     public void generateKeys() {
         privateKey = KeysGenerator.generatePrivateKey();
@@ -60,7 +58,7 @@ public class Knapsack {
         - jeśli nie wykorzystaliśmy i-tego elementu z klucza, to i-ty bit będzie wynosił 0.
     - Po zastosowaniu powyższej reguły dla każdego bitu otrzymujemy końcowy wynik deszyfrowania.
      */
-    public byte[] decryptCipherText(List<Integer> cipherText) {
+    public byte[] decrypt(List<Integer> cipherText) {
         List<Byte> decryptedList = new ArrayList<>();
         int nToMinusOne = 0;
         for (int i = 1; i <= m; i++) {
@@ -68,7 +66,7 @@ public class Knapsack {
                 nToMinusOne = i;
                 break;
             }
-        }   // podobno można szybciej ale nie chciało mi się xd
+        }
         for (Integer element : cipherText) {
             byte resultByte = 0;
             int result = (element * nToMinusOne) % m;
@@ -86,15 +84,4 @@ public class Knapsack {
         }
         return result;
     }
-
-    // skopiowałem z desx tymczasowo na potrzeby weryfikacji
-    public static String arrayToDecimal(byte[] array, String version) {
-        StringBuilder sb = new StringBuilder();
-        for (byte a : array) {
-            String binary = String.format(version, Integer.toBinaryString(a & 0xFF)).replace(' ', '0');
-            sb.append(binary).append(" ");
-        }
-        return sb.toString();
-    }
-
 }
