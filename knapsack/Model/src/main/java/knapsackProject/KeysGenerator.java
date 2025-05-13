@@ -27,7 +27,7 @@ public class KeysGenerator {
     /*
     Wyliczamy klucz publiczny, który służy do szyfrowania wiadomości.
     Każdą wartość z klucza prywatnego przeliczamy według wzoru:
-    public = ( private * n ) % m,
+    public = (private * n) % m,
     gdzie: public - wynik dla klucza publicznego, private - wartość z klucza prywatnego.
      */
     public static List<Integer> generatePublicKey(int m, int n, List<Integer> privateKey) {
@@ -42,11 +42,12 @@ public class KeysGenerator {
     /*
     Generujemy m.
     Jedyne ograniczenie jest takie, że musi być większe niż suma wszystkich wartości z klucza prywatnego.
+    W naszej implementacji liczba o od 1 do 200 większa niż ta suma
      */
     public static int generateM(List<Integer> privateKey) {
         int m = 0;
-        for (int i = 0; i < privateKey.size(); i++) {
-            m += privateKey.get(i);
+        for (Integer integer : privateKey) {
+            m += integer;
         }
         Random rand = new Random();
         m += rand.nextInt(200) + 1;
@@ -62,35 +63,37 @@ public class KeysGenerator {
         Random rand = new Random();
         do {
             n = rand.nextInt(m - 2) + 2;
-        } while (!areNumbersRelativelyPrime(m, n));
+        } while (numbersAreNotRelativelyPrime(m, n));
         return n;
     }
 
     /*
     Wykorzystanie algorytmu Euklidesa do weryfikacji, czy liczby są względnie pierwsze
      */
-    public static boolean areNumbersRelativelyPrime(int a, int b) {
+    public static boolean numbersAreNotRelativelyPrime(int a, int b) {
         while (b != 0) {
             int temp = b;
             b = a % b;
             a = temp;
         }
-        return a == 1;
+        return a != 1;
     }
 
-    public static void verifyLoadedData(List<Integer> privateKey, int m, int n) {
+    /*
+    Weryfikacja danych dotyczących klucza prywatnego, m i n
+     */
+    public static void verifyData(List<Integer> privateKey, int m, int n) {
         if (n > m) {
             throw new IllegalArgumentException("n musi być mniejsze od m");
         }
-        if (!areNumbersRelativelyPrime(m, n)) {
+        if (numbersAreNotRelativelyPrime(m, n)) {
             throw new IllegalArgumentException("m i n nie są względnie pierwsze!");
         }
         if (privateKey.size() != 8) {
             throw new IllegalArgumentException("Prywatny klucz musi składać się z 8 Integerów!");
         }
         int sum = 0;
-        for (int i = 0; i < privateKey.size(); i++) {
-            int value = privateKey.get(i);
+        for (int value : privateKey) {
             if (value <= 0) {
                 throw new IllegalArgumentException("Prywatny klucz zawiera zero lub ujemną wartość!");
             }
@@ -98,6 +101,9 @@ public class KeysGenerator {
                 throw new IllegalArgumentException("Ciąg liczb z klucza prywatnego nie jest ściśle rosnący");
             }
             sum += value;
+        }
+        if (sum >= m) {
+            throw new IllegalArgumentException("Suma ciągu liczb z klucza prywatnego musi być mniejsze od m");
         }
     }
 }
