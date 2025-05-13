@@ -271,11 +271,15 @@ public class MainController {
 
         if(privKey.getText().isEmpty()) {
             showAlert("Błąd!","Brak klucza prywatnego.");
+            return;
         }
         try {
             configureKnapsack();
-            String decrypted = new String(knap.decrypt(toDecode));
-            upperText.setText(decrypted);
+            byte[] decrypted = knap.decrypt(toDecode);
+            // konwersja byte -> String sprawia problemy. Myślę, że trzeba utworzyć pole, które będzie przechowywało byte przed konwersją na String
+            // Problem - wpisanie tekstu ręcznie po wczytaniu pliku/odkodowaniu...
+            // Już nie miałem siły myśleć, jutro po wbudach mogę usiąść dalej
+            upperText.setText(new String(decrypted));
             showAlert("Odkodowano wiadomość","Udało się odkodować wiadomość.");
         }
         catch (Exception e) {
@@ -287,8 +291,9 @@ public class MainController {
     public void encodeAll() {
         byte[] toEncode = upperText.getText().getBytes();
 
-        if(privKey.getText().isEmpty()) {
-            showAlert("Błąd!","Brak klucza prywatnego.");
+        if(pubKey.getText().isEmpty()) {
+            showAlert("Błąd!","Brak klucza publicznego.");
+            return;
         }
 
         try {
