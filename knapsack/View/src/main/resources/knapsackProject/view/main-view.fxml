@@ -14,8 +14,8 @@
             </font>
         </Text>
         <Button layoutX="218.0" layoutY="670.0" mnemonicParsing="false" onAction="#generatePrivKey" prefHeight="40.0" prefWidth="200.0" text="Wygeneruj klucz prywatny" />
-        <Button layoutX="438.0" layoutY="670.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="200.0" text="Zapisz klucz prywatny" />
-        <Button layoutX="658.0" layoutY="670.0" mnemonicParsing="false" prefHeight="40.0" prefWidth="200.0" text="Wczytaj klucz prywatny" />
+        <Button layoutX="438.0" layoutY="670.0" mnemonicParsing="false" onAction="#binarySaver" prefHeight="40.0" prefWidth="200.0" text="Zapisz klucz prywatny" />
+        <Button layoutX="658.0" layoutY="670.0" mnemonicParsing="false" onAction="#binaryLoader" prefHeight="40.0" prefWidth="200.0" text="Wczytaj klucz prywatny" />
         <Button layoutX="878.0" layoutY="670.0" mnemonicParsing="false" onAction="#generatePubKey" prefHeight="40.0" prefWidth="200.0" text="Utwórz klucz publiczny" />
       <TextField alignment="CENTER" layoutX="249.0" layoutY="111.0" prefHeight="200.0" prefWidth="800.0" promptText="Tu znajdzie się tekst do zaszyfrowania">
          <font>
