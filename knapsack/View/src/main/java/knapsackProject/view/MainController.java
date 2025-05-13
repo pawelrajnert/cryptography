@@ -1,15 +1,14 @@
-package org.example.view;
+package knapsackProject.view;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
-import org.example.*;
+import knapsackProject.KeysGenerator;
 
 import java.util.List;
 
 
 public class MainController {
-    KeysGenerator kg = new KeysGenerator();
     List<Integer> privKeyHolder;
 
     @FXML
@@ -38,7 +37,7 @@ public class MainController {
             privKeyHolder.clear();
         }
 
-        privKeyHolder = kg.generatePrivateKey();
+        privKeyHolder = KeysGenerator.generatePrivateKey();
         String key = privKeyHolder.toString();
 
         try {
@@ -52,7 +51,7 @@ public class MainController {
     @FXML
     private void generateM() {
         try {
-            int mValue = kg.generateM(privKeyHolder);
+            int mValue = KeysGenerator.generateM(privKeyHolder);
             String mHolder = Integer.toString(mValue);
             mBox.setText(mHolder);
         } catch (NullPointerException e) {
@@ -64,7 +63,7 @@ public class MainController {
     private void generateN() {
         int mValue = Integer.parseInt(mBox.getText());
         try {
-            int nValue = kg.generateN(mValue);
+            int nValue = KeysGenerator.generateN(mValue);
             String nHolder = Integer.toString(nValue);
             nBox.setText(nHolder);
         } catch (NullPointerException e) {
@@ -78,7 +77,7 @@ public class MainController {
         generateN();
         int m = Integer.parseInt(mBox.getText());
         int n = Integer.parseInt(nBox.getText());
-        String key = kg.generatePublicKey(m, n, privKeyHolder).toString();
+        String key = KeysGenerator.generatePublicKey(m, n, privKeyHolder).toString();
 
         try {
             pubKey.setText(key);

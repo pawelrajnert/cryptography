@@ -1,4 +1,4 @@
-package org.example.view;
+package knapsackProject.view;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

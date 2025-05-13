@@ -1,4 +1,4 @@
-package org.example;
+package knapsackProject;
 
 import java.util.List;
 

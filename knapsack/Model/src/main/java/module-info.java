@@ -1,3 +1,3 @@
-module Model {
-    exports org.example;
+module knapsackModel {
+    exports knapsackProject;
 }

@@ -1,8 +1,8 @@
-module org.example.view {
+module knapsackProject.view {
     requires javafx.controls;
     requires javafx.fxml;
-    requires Model;
+    requires knapsackModel;
 
-    opens org.example.view to javafx.fxml;
-    exports org.example.view;
+    opens knapsackProject.view to javafx.fxml;
+    exports knapsackProject.view;
 }
