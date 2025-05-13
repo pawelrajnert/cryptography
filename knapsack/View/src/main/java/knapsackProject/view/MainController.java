@@ -73,6 +73,10 @@ public class MainController {
 
     @FXML
     private void generatePubKey() {
+        if (privKeyHolder == null) {
+            showAlert("Uzyskano błąd!", "Klucz prywatny jest pusty!");
+            return;
+        }
         generateM();
         generateN();
         int m = Integer.parseInt(mBox.getText());
