@@ -84,4 +84,20 @@ public class Knapsack {
         }
         return result;
     }
+
+    public void setPrivateKey(List<Integer> privateKey) {
+        this.privateKey = privateKey;
+    }
+
+    public void setPublicKey(List<Integer> publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public void setN(int n) {
+        this.n = n;
+    }
+
+    public void setM(int m) {
+        this.m = m;
+    }
 }

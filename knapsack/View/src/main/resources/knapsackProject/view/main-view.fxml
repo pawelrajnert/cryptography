@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
@@ -17,20 +18,18 @@
         <Button layoutX="438.0" layoutY="670.0" mnemonicParsing="false" onAction="#binarySaver" prefHeight="40.0" prefWidth="200.0" text="Zapisz klucz prywatny" />
         <Button layoutX="658.0" layoutY="670.0" mnemonicParsing="false" onAction="#binaryLoader" prefHeight="40.0" prefWidth="200.0" text="Wczytaj klucz prywatny" />
         <Button layoutX="878.0" layoutY="670.0" mnemonicParsing="false" onAction="#generatePubKey" prefHeight="40.0" prefWidth="200.0" text="Utwórz klucz publiczny" />
-      <TextField alignment="CENTER" layoutX="249.0" layoutY="111.0" prefHeight="200.0" prefWidth="800.0" promptText="Tu znajdzie się tekst do zaszyfrowania">
-         <font>
-            <Font size="16.0" />
-         </font>
-      </TextField>
-      <TextField alignment="CENTER" layoutX="250.0" layoutY="427.0" prefHeight="200.0" prefWidth="800.0" promptText="Tu znajdzie się zaszyfrowany tekst">
-         <font>
-            <Font size="16.0" />
-         </font>
-      </TextField>
       <TextField fx:id="privKey" alignment="CENTER" layoutX="247.0" layoutY="350.0" prefHeight="40.0" prefWidth="200.0" promptText="Tu znajdzie się klucz prywatny" />
       <TextField fx:id="pubKey" alignment="CENTER" layoutX="464.0" layoutY="350.0" prefHeight="40.0" prefWidth="250.0" promptText="Tu znajdzie się klucz publiczny" />
       <TextField fx:id="nBox" alignment="CENTER" layoutX="730.0" layoutY="350.0" prefHeight="40.0" prefWidth="150.0" promptText="Tu znajdzie się wartość n" />
       <TextField fx:id="mBox" alignment="CENTER" layoutX="896.0" layoutY="350.0" prefHeight="40.0" prefWidth="150.0" promptText="Tu znajdzie się wartość m" />
+      <Button layoutX="27.0" layoutY="152.0" mnemonicParsing="false" onAction="#decodedTextSaver" prefHeight="40.0" prefWidth="200.0" text="Zapisz tekst" />
+      <Button layoutX="27.0" layoutY="230.0" mnemonicParsing="false" onAction="#decodedTextLoader" prefHeight="40.0" prefWidth="200.0" text="Wczytaj tekst" />
+      <Button layoutX="27.0" layoutY="468.0" mnemonicParsing="false" onAction="#encodedTextSaver" prefHeight="40.0" prefWidth="200.0" text="Zapisz zakodowany tekst" />
+      <Button layoutX="27.0" layoutY="546.0" mnemonicParsing="false" onAction="#encodedTextLoader" prefHeight="40.0" prefWidth="200.0" text="Wczytaj zakodowany tekst" />
+      <TextArea fx:id="upperText" layoutX="250.0" layoutY="122.0" prefHeight="200.0" prefWidth="804.0" promptText="Tu znajdzie się tekst do zaszyfrowania" />
+      <TextArea fx:id="lowerText" layoutX="250.0" layoutY="427.0" prefHeight="200.0" prefWidth="804.0" promptText="Tu znajdzie się zaszyfrowany tekst" />
+      <Button layoutX="1070.0" layoutY="190.0" mnemonicParsing="false" onAction="#encodeAll" prefHeight="40.0" prefWidth="200.0" text="Zakoduj tekst" />
+      <Button layoutX="1070.0" layoutY="500.0" mnemonicParsing="false" onAction="#decodeAll" prefHeight="40.0" prefWidth="200.0" text="Odkoduj tekst" />
 
     </children>
 </AnchorPane>

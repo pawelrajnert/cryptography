@@ -1,12 +1,16 @@
 package knapsackProject.view;
 
 import javafx.fxml.FXML;
+import javafx.scene.chart.PieChart;
 import javafx.scene.control.Alert;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import knapsackProject.BinaryDao;
+import knapsackProject.DataConverter;
 import knapsackProject.KeysGenerator;
+import knapsackProject.Knapsack;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -14,6 +18,7 @@ import java.util.List;
 
 
 public class MainController {
+    Knapsack knap = new Knapsack();
     List<Integer> privKeyHolder;
     List<Integer> pubKeyHolder;
 
@@ -28,6 +33,12 @@ public class MainController {
 
     @FXML
     private TextField mBox;
+
+    @FXML
+    private TextArea upperText;
+
+    @FXML
+    private TextArea lowerText;
 
     @FXML
     private void initialize() {
@@ -96,8 +107,7 @@ public class MainController {
                 int m = Integer.parseInt(mBox.getText());
                 int n = Integer.parseInt(nBox.getText());
                 KeysGenerator.verifyLoadedData(privKeyHolder, m, n);
-            }
-            catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException e) {
                 clearAll();
                 showAlert("Błąd odczytu danych!", e.getMessage());
                 return;
@@ -178,6 +188,126 @@ public class MainController {
         } catch (NullPointerException e) {
             showAlert("Uzyskano błąd!", "Błąd przy generowaniu klucza publicznego.");
         }
+    }
+
+    @FXML
+    public void encodedTextSaver() { // zapis dolnego pola
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Wybierz gdzie chcesz zapisać odszyfrowany plik/obecnie wpisany tekst:");
+        File file = fileChooser.showSaveDialog(new Stage());
+        lowerText.getText();
+        if (file != null) {
+            if (lowerText == null) {
+                showAlert("Błąd", "Brak zaszyfrowanych danych do zapisania.");
+                return;
+            }
+            BinaryDao<byte[]> dao = new BinaryDao<>();
+            byte[] data = lowerText.getText().getBytes();
+            dao.write(file.getAbsolutePath(), data);
+            showAlert("Zapisano zaszyfrowany plik binarny", "Poprawnie zapisano dane do pliku: " + file.getName());
+        }
+
+    }
+
+    @FXML
+    public void encodedTextLoader() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Wybierz zakodowany plik binarny do odczytu: ");
+        File file = fileChooser.showOpenDialog(new Stage());
+        if (file != null) {
+            BinaryDao<byte[]> dao = new BinaryDao<>();
+            byte[] data = dao.read(file.getAbsolutePath());
+            if (data != null) {
+                String encodedText = new String(data);
+                lowerText.setText(encodedText);
+                showAlert("Wczytano zakodowany plik binarny", "Poprawnie wczytano dane z pliku: " + file.getName());
+            } else {
+                showAlert("Błąd odczytu danych", "Nie udało się odczytać danych z zakodowanego pliku binarnego: " + file.getName());
+            }
+        }
+    }
+
+    @FXML
+    public void decodedTextSaver() { // zapis górnego pola
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Wybierz gdzie chcesz zapisać odszyfrowany plik/obecnie wpisany tekst:");
+        File file = fileChooser.showSaveDialog(new Stage());
+        upperText.getText();
+        if (file != null) {
+            if (upperText == null) {
+                showAlert("Błąd", "Brak odszyfrowanych danych do zapisania.");
+                return;
+            }
+            BinaryDao<byte[]> dao = new BinaryDao<>();
+            byte[] data = upperText.getText().getBytes();
+            dao.write(file.getAbsolutePath(), data);
+            showAlert("Zapisano odszyfrowany plik binarny/obecnie wpisany tekst", "Poprawnie zapisano dane do pliku: " + file.getName());
+        }
+    }
+
+    @FXML
+    public void decodedTextLoader() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Wybierz zakodowany plik binarny do odczytu: ");
+        File file = fileChooser.showOpenDialog(new Stage());
+        if (file != null) {
+            BinaryDao<byte[]> dao = new BinaryDao<>();
+            byte[] data = dao.read(file.getAbsolutePath());
+            if (data != null) {
+                String decodedText = new String(data);
+                upperText.setText(decodedText);
+                showAlert("Wczytano odkodowany plik binarny", "Poprawnie wczytano dane z pliku: " + file.getName());
+            } else {
+                showAlert("Błąd odczytu danych", "Nie udało się odczytać danych z odkodowanego pliku binarnego: " + file.getName());
+            }
+        }
+    }
+
+    @FXML
+    public void decodeAll() {
+        String decodedText = new String(lowerText.getText());
+        List<Integer> toDecode = DataConverter.decodeCipherText(decodedText);
+
+        if(privKey.getText().isEmpty()) {
+            showAlert("Błąd!","Brak klucza prywatnego.");
+        }
+        try {
+            configureKnapsack();
+            String decrypted = new String(knap.decrypt(toDecode));
+            upperText.setText(decrypted);
+        }
+        catch (Exception e) {
+            showAlert("Błąd!","Nie udało się odkodować wiadomości.");
+        }
+    }
+
+    @FXML
+    public void encodeAll() {
+        byte[] toEncode = upperText.getText().getBytes();
+
+        if(privKey.getText().isEmpty()) {
+            showAlert("Błąd!","Brak klucza prywatnego.");
+        }
+
+        try {
+            configureKnapsack();
+            List<Integer> cipherText = knap.encrypt(toEncode);
+            String base64CipherText = DataConverter.showCipherText(cipherText);
+            lowerText.setText(base64CipherText);
+            upperText.clear();
+        }
+        catch (Exception e) {
+            showAlert("Błąd!","Nie udało się zakodować wiadomości.");
+        }
+    }
+
+    private void configureKnapsack() {
+        knap.setPublicKey(pubKeyHolder);
+        knap.setPrivateKey(privKeyHolder);
+        int m = Integer.parseInt(mBox.getText().trim());
+        knap.setM(m);
+        int n = Integer.parseInt(nBox.getText().trim());
+        knap.setN(n);
     }
 
     private void clearAll() {
