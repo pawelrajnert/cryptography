@@ -1,0 +1,3 @@
+module knapsackModel {
+    exports knapsackProject;
+}

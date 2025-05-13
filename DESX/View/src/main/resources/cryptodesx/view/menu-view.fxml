@@ -1,16 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.VBox?>
-
 <?import javafx.scene.control.Button?>
-<VBox alignment="CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="cryptodesx.view.MenuController">
-  <padding>
-    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
-  </padding>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
 
-  <Label fx:id="welcomeText"/>
-  <Button text="Hello!" onAction="#onHelloButtonClick"/>
-</VBox>
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0"
+            prefWidth="1280.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="cryptodesx.view.MenuController">
+    <children>
+        <Text layoutX="90.0" layoutY="49.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Szyfrowanie DESX"
+              wrappingWidth="322.0">
+            <font>
+                <Font name="System Bold" size="36.0"/>
+            </font>
+        </Text>
+
+        <TextField fx:id="DESKey" layoutX="104.0" layoutY="73.0" prefHeight="40.0" prefWidth="250.0"
+                   promptText="Klucz musi mieć maksymalnie 8 znaków!"/>
+        <Button layoutX="364.0" layoutY="73.0" mnemonicParsing="false" onAction="#DESKeySetter" prefHeight="40.0"
+                prefWidth="300.0" text="Potwierdź klucz główny"/>
+
+        <TextField fx:id="DESXKey1" layoutX="104.0" layoutY="133.0" prefHeight="40.0" prefWidth="250.0"
+                   promptText="Klucz musi mieć maksymalnie 8 znaków!"/>
+        <Button layoutX="364.0" layoutY="133.0" mnemonicParsing="false" onAction="#DESXKeySetter1" prefHeight="40.0"
+                prefWidth="300.0" text="Potwierdź pierwszy klucz DESX"/>
+
+        <TextField fx:id="DESXKey2" layoutX="104.0" layoutY="193.0" prefHeight="40.0" prefWidth="250.0"
+                   promptText="Klucz musi mieć maksymalnie 8 znaków!"/>
+
+        <Button layoutX="364.0" layoutY="193.0" mnemonicParsing="false" onAction="#DESXKeySetter2" prefHeight="40.0"
+                prefWidth="300.0" text="Potwierdź drugi klucz DESX"/>
+
+        <Button layoutX="858.0" layoutY="73.0" mnemonicParsing="false" onAction="#binaryLoaderDecoded" prefHeight="40.0"
+                prefWidth="140.0" text="Wczytaj dane"/>
+
+        <Button layoutX="858.0" layoutY="133.0" mnemonicParsing="false" onAction="#encodeData" prefHeight="40.0"
+                prefWidth="300.0" text="Zaszyfruj dane"/>
+
+        <Button layoutX="858.0" layoutY="193.0" mnemonicParsing="false" onAction="#decodeData" prefHeight="40.0"
+                prefWidth="300.0" text="Odszyfruj dane"/>
+
+        <Text layoutX="90.0" layoutY="310.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Szyfrowanie "
+              wrappingWidth="139.0">
+            <font>
+                <Font size="20.0"/>
+            </font>
+        </Text>
+
+        <Text layoutX="90.0" layoutY="531.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Deszyfrowanie"
+              wrappingWidth="187.5">
+            <font>
+                <Font size="20.0"/>
+            </font>
+        </Text>
+
+        <TextArea fx:id="encodeTextArea" layoutX="90.0" layoutY="323.0"
+                  prefHeight="158.0" prefWidth="1072.0" editable="true"/>
+
+        <TextArea fx:id="decodeTextArea" layoutX="90.0" layoutY="548.0" prefHeight="158.0" prefWidth="1072.0"/>
+        <Button layoutX="858.0" layoutY="253.0" mnemonicParsing="false" onAction="#binarySaverDecoded" prefHeight="40.0"
+                prefWidth="140.0" text="Zapisz odkodowane"/>
+        <Button layoutX="1019.0" layoutY="253.0" mnemonicParsing="false" onAction="#binarySaverEncoded"
+                prefHeight="40.0" prefWidth="140.0" text="Zapisz zakodowane"/>
+        <Button layoutX="1019.0" layoutY="72.0" mnemonicParsing="false" onAction="#binaryLoaderEncoded"
+                prefHeight="40.0" prefWidth="140.0" text="Wczytaj zakodowane"/>
+
+    </children>
+</AnchorPane>

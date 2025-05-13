@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+
 /*
     Info:
     *   funkcja des.arrayToDecimal wyswietla liczbe w postaci dwójkowej, aby skorzystać z niej należy dopisać argument:
@@ -16,51 +18,47 @@ class DESTest {
     @Test
     @DisplayName("Klasa testowa do sprawdzania działania programu")
     void desTest() throws UnsupportedEncodingException {
-        DES des = new DES();
-        String testMes = "\u0001\u0023\u0045\u0067\u0089\u00ab\u00cd\u00ef";
-        byte[] bytes = testMes.getBytes("ISO-8859-1");
-        System.out.println("Wiadomość przed algorytmem: " + testMes + "|koniec wiadomości");
-
-        des.setMessage(bytes);
-        System.out.println("Wiadomość w postaci bitowej: " + Arrays.toString(des.getMessage()) + "|koniec wiadomości");
-        System.out.println("Wiadomość w postaci bitowej: " + des.arrayToDecimal(des.getMessage(), "%8s") + "|koniec wiadomości");
-
-        String testKey = "\u0001\u0023\u0045\u0067\u0089\u00ab\u00cd\u00ef";
-        bytes = testKey.getBytes("ISO-8859-1");
-        des.setMainKey(bytes);
-        System.out.println("Klucz główny: " + Arrays.toString(des.getMainKey()) + "|koniec klucza");
-        System.out.println("Klucz główny: " + des.arrayToDecimal(des.getMainKey(), "%8s") + "|koniec klucza");
-
-        String shortMes = des.isMessageCorrect("abcd");
+        DESX desx = new DESX();
+        String shortMes = desx.isMessageCorrect("abcd");
         System.out.println("Wiadomość za krotka po funkcji sprawdzajacej: " + shortMes + "|koniec wiadomości");
 
-        des.initialPermutation();
-        System.out.println("Wiadomość po IP: " + Arrays.toString(des.getMessage()) + "|koniec wiadomości");
+        String testMes = "kryptoxd";
+        byte[] testBytes = testMes.getBytes("ISO-8859-1");
+        System.out.println("Wiadomość przed algorytmem: " + testMes + "|koniec wiadomości");
+        System.out.println("Wiadomość w postaci liczb ascii: " + Arrays.toString(testBytes) + "|koniec wiadomości");
+        System.out.println("Wiadomość w postaci bitowej: " + desx.arrayToDecimal(testBytes,"%8s") + "|koniec wiadomości");
 
-        des.messageAfterIPSplitter();
-        System.out.println("Lewa część wiadomości: " + Arrays.toString(des.getLeftMesPart()) + "|koniec wiadomości");
-        System.out.println("Lewa część wiadomości: " + des.arrayToDecimal(des.getLeftMesPart(), "%7s") + "|koniec wiadomości");
-        System.out.println("Prawa część wiadomości: " + Arrays.toString(des.getRightMesPart()) + "|koniec wiadomości");
-        System.out.println("Prawa część wiadomości: " + des.arrayToDecimal(des.getRightMesPart(), "%8s") + "|koniec wiadomości");
+        desx.setMainKey("kDD3hVav");
+        desx.setInitialKey("923jfds2");
+        desx.setFinalKey("AKJSKHFd");
 
-        des.doPC1on56bitKey();
-        System.out.println("Klucz w wersji 56 bit po PC1: " + Arrays.toString(des.getMainKey()) + "|koniec klucza");
-        System.out.println("Klucz w wersji 56 bit po PC1: " + des.arrayToDecimal(des.getMainKey(), "%7s") + "|koniec klucza");
+        System.out.println("Klucz główny: " + Arrays.toString(desx.getMainKey()) + "|koniec klucza");
+        System.out.println("Klucz główny: " + desx.arrayToDecimal(desx.getMainKey(), "%8s") + "|koniec klucza");
 
-        des.mainKey56bitSplitter();
-        System.out.println("Klucz w wersji 28 bit (lewa część): " + Arrays.toString(des.getLeftKeyPart()) + "|koniec klucza");
-        System.out.println("Klucz w wersji 28 bit (lewa część): " + des.arrayToDecimal(des.getLeftKeyPart(), "%7s") + "|koniec klucza");
-        System.out.println("Klucz w wersji 28 bit (prawa część): " + Arrays.toString(des.getRightKeyPart()) + "|koniec klucza");
-        System.out.println("Klucz w wersji 28 bit (prawa część): " + des.arrayToDecimal(des.getRightKeyPart(), "%7s") + "|koniec klucza");
+        System.out.println("Klucz w wersji 56 bit po PC1: " + Arrays.toString(desx.getMainKey()) + "|koniec klucza");
+        System.out.println("Klucz w wersji 56 bit po PC1: " + desx.arrayToDecimal(desx.getMainKey(), "%7s") + "|koniec klucza");
 
-        des.makeRoundKeys();
-        System.out.println("Złączone podklucze po rotacji w lewo (16 rund): " + Arrays.deepToString(des.getRoundKeys()) + "|koniec klucza");
-        for (int i = 0; i < des.getRoundKeys().length; i++) {
-            System.out.println("Runda " + (i + 1) + ": " + des.arrayToDecimal(des.getRoundKeys()[i], "%7s") + "|koniec klucza");
+        System.out.println("Klucz w wersji 28 bit (lewa część): " + Arrays.toString(desx.getLeftKeyPart()) + "|koniec klucza");
+        System.out.println("Klucz w wersji 28 bit (lewa część): " + desx.arrayToDecimal(desx.getLeftKeyPart(), "%7s") + "|koniec klucza");
+        System.out.println("Klucz w wersji 28 bit (prawa część): " + Arrays.toString(desx.getRightKeyPart()) + "|koniec klucza");
+        System.out.println("Klucz w wersji 28 bit (prawa część): " + desx.arrayToDecimal(desx.getRightKeyPart(), "%7s") + "|koniec klucza");
+
+        System.out.println("Złączone podklucze po rotacji w lewo (16 rund): " + Arrays.deepToString(desx.getRoundKeys()) + "|koniec klucza");
+        for (int i = 0; i < desx.getRoundKeys().length; i++) {
+            System.out.println("Runda " + (i + 1) + ": " + desx.arrayToDecimal(desx.getRoundKeys()[i], "%7s") + "|koniec klucza");
         }
 
+        System.out.println("Podklucze po PC2: " + Arrays.deepToString(desx.getRoundKeys()) + "|koniec klucza");
+        for (int j = 0; j < desx.getRoundKeys().length; j++) {
+            System.out.println("Runda " + (j + 1) + ": " + desx.arrayToDecimal(desx.getRoundKeys()[j], "%6s") + "|koniec klucza");
+        }
 
-        des.doPC2OnRoundKeys();
-        System.out.println("Podklucze po PC2: " + Arrays.deepToString(des.getRoundKeys()) + "|koniec klucza");
+        byte[] encrypted = desx.encryptMessage(testBytes, false);
+        System.out.println("Wiadomość zakodowana powyższym kluczem: " + desx.arrayToDecimal(encrypted, "%8s"));
+        byte[] decrypted = desx.encryptMessage(encrypted, true);
+        System.out.println("Wiadomość odkodowana powyższym kluczem: " + desx.arrayToDecimal(decrypted, "%8s"));
+        System.out.println("Początkowa wiadomość: " + desx.arrayToDecimal(testBytes, "%8s"));
+        assertArrayEquals(testBytes, decrypted);
+
     }
 }
