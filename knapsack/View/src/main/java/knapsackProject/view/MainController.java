@@ -57,11 +57,11 @@ public class MainController {
 
     @FXML
     private void binaryLoader() {
-        clearAll();
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Wybierz plik zawierający klucz prywatny: ");
         File file = fileChooser.showOpenDialog(new Stage());
         if (file != null) {
+            clearAll();
             BinaryDao<byte[]> dao = new BinaryDao<>();
             byte[] data = dao.read(file.getAbsolutePath());
             if (data != null) {
@@ -83,13 +83,26 @@ public class MainController {
                     }
                     mBox.setText(lines[1].trim()); // w 2 linii pliku znajduje sie wartosc m
                     nBox.setText(lines[2].trim()); // a w 3 linii pliku znajduje sie wartosc n
-                    showAlert("Odczytano klucz prywatny", "Poprawnie odczytano klucz prywatny wraz z wartościami m i n.");
+
                 } catch (Exception e) {
                     showAlert("Wystąpił nieoczekiwany błąd:", e.getMessage());
+                    return;
                 }
             } else {
                 showAlert("Błąd odczytu danych", "Nie udało się odczytać klucza prywatnego z pliku: " + file.getName());
+                return;
             }
+            try {
+                int m = Integer.parseInt(mBox.getText());
+                int n = Integer.parseInt(nBox.getText());
+                KeysGenerator.verifyLoadedData(privKeyHolder, m, n);
+            }
+            catch (IllegalArgumentException e) {
+                clearAll();
+                showAlert("Błąd odczytu danych!", e.getMessage());
+                return;
+            }
+            showAlert("Odczytano klucz prywatny", "Poprawnie odczytano klucz prywatny wraz z wartościami m i n.");
         }
     }
 
@@ -104,6 +117,8 @@ public class MainController {
 
         try {
             privKey.setText(key);
+            generateM();
+            generateN();
             showAlert("Operacja wykonana poprawnie!", "Wygenerowano klucz prywatny.");
         } catch (NullPointerException e) {
             showAlert("Uzyskano błąd!", "Błąd przy generowaniu klucza prywatnego.");
@@ -166,14 +181,16 @@ public class MainController {
     }
 
     private void clearAll() {
-        if (privKeyHolder != null && mBox.getText() != null && nBox.getText() != null && privKey.getText() != null && mBox.getText() != null) {
+        if (privKeyHolder != null && privKey != null) {
             privKeyHolder.clear();
-            pubKeyHolder.clear();
-            mBox.setText("");
-            nBox.setText("");
             privKey.setText("");
+        }
+        if (pubKeyHolder != null && pubKey != null) {
+            pubKeyHolder.clear();
             pubKey.setText("");
         }
+        if (nBox != null) nBox.setText("");
+        if (mBox != null) mBox.setText("");
     }
 
     private void showAlert(String title, String message) {

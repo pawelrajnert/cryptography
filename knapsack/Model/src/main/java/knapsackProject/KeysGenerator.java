@@ -69,12 +69,35 @@ public class KeysGenerator {
     /*
     Wykorzystanie algorytmu Euklidesa do weryfikacji, czy liczby są względnie pierwsze
      */
-    private static boolean areNumbersRelativelyPrime(int a, int b) {
+    public static boolean areNumbersRelativelyPrime(int a, int b) {
         while (b != 0) {
             int temp = b;
             b = a % b;
             a = temp;
         }
         return a == 1;
+    }
+
+    public static void verifyLoadedData(List<Integer> privateKey, int m, int n) {
+        if (n > m) {
+            throw new IllegalArgumentException("n musi być mniejsze od m");
+        }
+        if (!areNumbersRelativelyPrime(m, n)) {
+            throw new IllegalArgumentException("m i n nie są względnie pierwsze!");
+        }
+        if (privateKey.size() != 8) {
+            throw new IllegalArgumentException("Prywatny klucz musi składać się z 8 Integerów!");
+        }
+        int sum = 0;
+        for (int i = 0; i < privateKey.size(); i++) {
+            int value = privateKey.get(i);
+            if (value <= 0) {
+                throw new IllegalArgumentException("Prywatny klucz zawiera zero lub ujemną wartość!");
+            }
+            if (value <= sum) {
+                throw new IllegalArgumentException("Ciąg liczb z klucza prywatnego nie jest ściśle rosnący");
+            }
+            sum += value;
+        }
     }
 }
