@@ -8,16 +8,18 @@ import java.util.List;
 public class App {
     public static void main(String[] args) {
         Knapsack knapsack = new Knapsack();
-        byte[] bytes = "Zaszyfrowany Tekst".getBytes();
-        List<Integer> cipherText = knapsack.encrypt(bytes);
-        byte[] result = knapsack.decryptCipherText(cipherText);
-        System.out.println(cipherText);
-        /*
-        TODO (prawdopodobnie już przy robieniu GUI)
-        Przerobienie listy integerów na to by wyglądało to jak tekst zaszyfrowany xd
-         */
-        System.out.println(Knapsack.arrayToDecimal(bytes, "%8s"));
-        System.out.println();
-        System.out.println(Knapsack.arrayToDecimal(result, "%8s"));
+        knapsack.generateKeys();
+        String input = "inputText";
+        byte[] inputBytes = input.getBytes();
+        List<Integer> cipherText = knapsack.encrypt(inputBytes);
+        String base64CipherText = DataConverter.showCipherText(cipherText);
+        List<Integer> cipherText2 = DataConverter.decodeCipherText(base64CipherText);
+        byte[] decodedText = knapsack.decrypt(cipherText2);
+        String result = new String(decodedText);
+        System.out.println("Wprowadzony tekst: " + input);
+        System.out.println("Zaszyfrowany tekst: " + cipherText);
+        System.out.println("Do wstawienia w pole: " + base64CipherText);
+        System.out.println("Odkodowana lista intów: " + cipherText2);
+        System.out.println("Odszyfrowany tekst: " + result);
     }
 }
