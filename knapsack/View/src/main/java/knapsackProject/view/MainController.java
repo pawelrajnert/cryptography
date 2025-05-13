@@ -95,7 +95,7 @@ public class MainController {
             try {
                 int m = Integer.parseInt(mBox.getText());
                 int n = Integer.parseInt(nBox.getText());
-                KeysGenerator.verifyLoadedData(privKeyHolder, m, n);
+                KeysGenerator.verifyData(privKeyHolder, m, n);
             }
             catch (IllegalArgumentException e) {
                 clearAll();
