@@ -20,7 +20,7 @@ public class MainController {
     Knapsack knap = new Knapsack();
     List<Integer> privKeyHolder;
     List<Integer> pubKeyHolder;
-    private byte [] decodedTextHolder; // tu byla rozkmina zeby to trzymac jak ostatnio, to do sprawdzenia
+    private byte[] decodedTextHolder;
 
     @FXML
     private TextField pubKey;
@@ -51,16 +51,15 @@ public class MainController {
 
     @FXML
     private void binaryKeySaver() { // funkcja do zapisu klucza prywatnego + wartości n i m
+        if (privKeyHolder == null || mBox == null || nBox == null) {
+            showAlert("Błąd", "Brak wystarczających danych klucza prywatnego do zapisania.");
+            return;
+        }
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Wybierz gdzie chcesz zapisać klucz prywatny:");
         File file = fileChooser.showSaveDialog(new Stage());
         if (file != null) {
-            if (privKeyHolder == null) {
-                showAlert("Błąd", "Brak odszyfrowanych danych do zapisania.");
-                return;
-            }
             String sb = privKeyHolder + System.lineSeparator() + mBox.getText() + System.lineSeparator() + nBox.getText();
-
             BinaryDao<byte[]> dao = new BinaryDao<>();
             dao.write(file.getAbsolutePath(), sb.getBytes());
             showAlert("Zapisano klucz prywatny", "Poprawnie zapisano dane do pliku: " + file.getName());
@@ -95,8 +94,12 @@ public class MainController {
                     }
                     mBox.setText(lines[1].trim()); // w 2 linii pliku znajduje sie wartosc m
                     nBox.setText(lines[2].trim()); // a w 3 linii pliku znajduje sie wartosc n
-
+                } catch (NumberFormatException e) {
+                    clearAll();
+                    showAlert("Wystąpił błąd:", "Upewnij się, że klucz to lista Integerów!");
+                    return;
                 } catch (Exception e) {
+                    clearAll();
                     showAlert("Wystąpił nieoczekiwany błąd:", e.getMessage());
                     return;
                 }
@@ -108,6 +111,10 @@ public class MainController {
                 int m = Integer.parseInt(mBox.getText());
                 int n = Integer.parseInt(nBox.getText());
                 KeysGenerator.verifyData(privKeyHolder, m, n);
+            } catch (NumberFormatException e) {
+                clearAll();
+                showAlert("Błąd danych!", "Niepoprawny format liczbowy w pliku w polu m lub n.");
+                return;
             } catch (IllegalArgumentException e) {
                 clearAll();
                 showAlert("Błąd odczytu danych!", e.getMessage());
@@ -161,32 +168,29 @@ public class MainController {
 
     @FXML
     private void generatePubKey() {
-        if (privKeyHolder == null) {
+        if (privKeyHolder == null || privKeyHolder.size() != 8) {
             showAlert("Uzyskano błąd!", "Klucz prywatny jest pusty!");
             return;
         }
-
         if (pubKeyHolder != null) {
             pubKeyHolder.clear();
         }
-
+        int m, n;
         try {
-            if (nBox.getText().isEmpty() && mBox.getText().isEmpty()) {
-                generateM();
-                generateN();
-            }
-        } catch (Exception e) {
+            m = Integer.parseInt(mBox.getText());
+            n = Integer.parseInt(nBox.getText());
+        } catch (NumberFormatException e) {
             showAlert("Uzyskano błąd!", "Błąd przy odczycie wartości m i n.");
+            return;
         }
-        int m = Integer.parseInt(mBox.getText());
-        int n = Integer.parseInt(nBox.getText());
         pubKeyHolder = KeysGenerator.generatePublicKey(m, n, privKeyHolder);
         String key = pubKeyHolder.toString();
-
         try {
             pubKey.setText(key);
             showAlert("Operacja wykonana poprawnie!", "Wygenerowano klucz publiczny.");
         } catch (NullPointerException e) {
+            pubKey.setText("");
+            pubKeyHolder = null;
             showAlert("Uzyskano błąd!", "Błąd przy generowaniu klucza publicznego.");
         }
     }
@@ -198,7 +202,7 @@ public class MainController {
         File file = fileChooser.showSaveDialog(new Stage());
         lowerText.getText();
         if (file != null) {
-            if (lowerText == null) {
+            if (lowerText.getText().isEmpty()) {
                 showAlert("Błąd", "Brak zaszyfrowanych danych do zapisania.");
                 return;
             }
@@ -235,12 +239,15 @@ public class MainController {
         File file = fileChooser.showSaveDialog(new Stage());
         upperText.getText();
         if (file != null) {
-            if (upperText == null) {
+            if (upperText.getText().isEmpty()) {
                 showAlert("Błąd", "Brak odszyfrowanych danych do zapisania.");
                 return;
             }
-            BinaryDao<byte[]> dao = new BinaryDao<>();
             byte[] data = upperText.getText().getBytes();
+            if (decodedTextHolder != null) {
+                data = decodedTextHolder;
+            }
+            BinaryDao<byte[]> dao = new BinaryDao<>();
             dao.write(file.getAbsolutePath(), data);
             showAlert("Zapisano odszyfrowany plik binarny/obecnie wpisany tekst", "Poprawnie zapisano dane do pliku: " + file.getName());
         }
@@ -255,46 +262,50 @@ public class MainController {
             BinaryDao<byte[]> dao = new BinaryDao<>();
             byte[] data = dao.read(file.getAbsolutePath());
             if (data != null) {
-                String decodedText = new String(data);
-                upperText.setText(decodedText);
+                setDataHolder(data);
                 showAlert("Wczytano odkodowany plik binarny", "Poprawnie wczytano dane z pliku: " + file.getName());
             } else {
+                clearDataHolder();
                 showAlert("Błąd odczytu danych", "Nie udało się odczytać danych z odkodowanego pliku binarnego: " + file.getName());
             }
+
         }
     }
 
     @FXML
     public void decodeAll() { // odkodowanie danych z dolnego pola (zawierającego zakodowany tekst w postaci tablicy intów [ALE TRZYMAMY TO JAKO TEKST BASE64 W POLU])
-        String decodedText = new String(lowerText.getText());
-        List<Integer> toDecode = DataConverter.decodeCipherText(decodedText);
-
         if (privKey.getText().isEmpty()) {
             showAlert("Błąd!", "Brak klucza prywatnego.");
             return;
         }
         try {
+            String decodedText = lowerText.getText();
+            List<Integer> toDecode = DataConverter.decodeCipherText(decodedText);
             configureKnapsack();
             byte[] decrypted = knap.decrypt(toDecode);
-            // konwersja byte -> String sprawia problemy. Myślę, że trzeba utworzyć pole, które będzie przechowywało byte przed konwersją na String
-            // Problem - wpisanie tekstu ręcznie po wczytaniu pliku/odkodowaniu...
-            // Już nie miałem siły myśleć, jutro po wbudach mogę usiąść dalej
-            upperText.setText(new String(decrypted));
+
+            setDataHolder(decrypted);
             showAlert("Odkodowano wiadomość", "Udało się odkodować wiadomość.");
+        } catch (IllegalArgumentException e) {
+            clearDataHolder();
+            showAlert("Błąd odkodowania!", "Upewnij się, że w polu znajduje się poprawny tekst base64!");
         } catch (Exception e) {
-            showAlert("Błąd!", "Nie udało się odkodować wiadomości.");
+            clearDataHolder();
+            showAlert("Nieoczekiwany błąd!", "Nie udało się odkodować wiadomości.");
         }
     }
 
     @FXML
     public void encodeAll() { // kodowanie danych z górnego pola i zamieszczenie ich w dolnym polu (jest to tablica intów ale w pole wpisujemy to jako BASE64)
-        byte[] toEncode = upperText.getText().getBytes();
+        byte[] toEncode = upperText.getText().getBytes();;
+        if (decodedTextHolder != null) {
+            toEncode = decodedTextHolder;
+        }
 
         if (pubKey.getText().isEmpty()) {
             showAlert("Błąd!", "Brak klucza publicznego.");
             return;
         }
-
         try {
             configureKnapsack();
             List<Integer> cipherText = knap.encrypt(toEncode);
@@ -304,6 +315,7 @@ public class MainController {
             showAlert("Zakodowano wiadomość", "Udało się zakodować wiadomość.");
         } catch (Exception e) {
             showAlert("Błąd!", "Nie udało się zakodować wiadomości.");
+            lowerText.setText("");
         }
     }
 
@@ -327,6 +339,16 @@ public class MainController {
         }
         if (nBox != null) nBox.setText("");
         if (mBox != null) mBox.setText("");
+    }
+
+    private void clearDataHolder() {
+        decodedTextHolder = null;
+        upperText.setText("");
+    }
+
+    private void setDataHolder(byte[] data) {
+        decodedTextHolder = data;
+        upperText.setText(new String(data));
     }
 
     private void showAlert(String title, String message) {

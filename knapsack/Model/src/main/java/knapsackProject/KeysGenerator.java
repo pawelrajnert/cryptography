@@ -103,7 +103,7 @@ public class KeysGenerator {
             sum += value;
         }
         if (sum >= m) {
-            throw new IllegalArgumentException("Suma ciągu liczb z klucza prywatnego musi być mniejsze od m");
+            throw new IllegalArgumentException("Suma ciągu liczb z klucza prywatnego musi być mniejsza od m");
         }
     }
 }
