@@ -9,7 +9,8 @@ public class Knapsack {
     private int n;
     private int m;
 
-    public Knapsack() { }
+    public Knapsack() {
+    }
 
     public void generateKeys() {
         privateKey = KeysGenerator.generatePrivateKey();

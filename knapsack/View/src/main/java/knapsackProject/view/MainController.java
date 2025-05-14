@@ -1,7 +1,6 @@
 package knapsackProject.view;
 
 import javafx.fxml.FXML;
-import javafx.scene.chart.PieChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -21,6 +20,7 @@ public class MainController {
     Knapsack knap = new Knapsack();
     List<Integer> privKeyHolder;
     List<Integer> pubKeyHolder;
+    private byte [] decodedTextHolder; // tu byla rozkmina zeby to trzymac jak ostatnio, to do sprawdzenia
 
     @FXML
     private TextField pubKey;
@@ -50,7 +50,7 @@ public class MainController {
     }
 
     @FXML
-    private void binarySaver() {
+    private void binaryKeySaver() { // funkcja do zapisu klucza prywatnego + wartości n i m
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Wybierz gdzie chcesz zapisać klucz prywatny:");
         File file = fileChooser.showSaveDialog(new Stage());
@@ -68,7 +68,7 @@ public class MainController {
     }
 
     @FXML
-    private void binaryLoader() {
+    private void binaryKeyLoader() { // funkcja do odczytu klucza prywatnego wraz z wartościami n i m (3 linie w pliku)
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Wybierz plik zawierający klucz prywatny: ");
         File file = fileChooser.showOpenDialog(new Stage());
@@ -192,9 +192,9 @@ public class MainController {
     }
 
     @FXML
-    public void encodedTextSaver() { // zapis dolnego pola
+    public void encodedTextSaver() { // zapis zakodowanego pliku
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Wybierz gdzie chcesz zapisać odszyfrowany plik/obecnie wpisany tekst:");
+        fileChooser.setTitle("Wybierz gdzie chcesz zapisać odszyfrowany plik:");
         File file = fileChooser.showSaveDialog(new Stage());
         lowerText.getText();
         if (file != null) {
@@ -211,7 +211,7 @@ public class MainController {
     }
 
     @FXML
-    public void encodedTextLoader() {
+    public void encodedTextLoader() { // odczyt zakodowanego pliku
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Wybierz zakodowany plik binarny do odczytu: ");
         File file = fileChooser.showOpenDialog(new Stage());
@@ -229,7 +229,7 @@ public class MainController {
     }
 
     @FXML
-    public void decodedTextSaver() { // zapis górnego pola
+    public void decodedTextSaver() { // zapis pliku odkodowanego
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Wybierz gdzie chcesz zapisać odszyfrowany plik/obecnie wpisany tekst:");
         File file = fileChooser.showSaveDialog(new Stage());
@@ -247,7 +247,7 @@ public class MainController {
     }
 
     @FXML
-    public void decodedTextLoader() {
+    public void decodedTextLoader() { // odczyt pliku odkodowanego
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Wybierz zakodowany plik binarny do odczytu: ");
         File file = fileChooser.showOpenDialog(new Stage());
@@ -265,12 +265,12 @@ public class MainController {
     }
 
     @FXML
-    public void decodeAll() {
+    public void decodeAll() { // odkodowanie danych z dolnego pola (zawierającego zakodowany tekst w postaci tablicy intów [ALE TRZYMAMY TO JAKO TEKST BASE64 W POLU])
         String decodedText = new String(lowerText.getText());
         List<Integer> toDecode = DataConverter.decodeCipherText(decodedText);
 
-        if(privKey.getText().isEmpty()) {
-            showAlert("Błąd!","Brak klucza prywatnego.");
+        if (privKey.getText().isEmpty()) {
+            showAlert("Błąd!", "Brak klucza prywatnego.");
             return;
         }
         try {
@@ -280,19 +280,18 @@ public class MainController {
             // Problem - wpisanie tekstu ręcznie po wczytaniu pliku/odkodowaniu...
             // Już nie miałem siły myśleć, jutro po wbudach mogę usiąść dalej
             upperText.setText(new String(decrypted));
-            showAlert("Odkodowano wiadomość","Udało się odkodować wiadomość.");
-        }
-        catch (Exception e) {
-            showAlert("Błąd!","Nie udało się odkodować wiadomości.");
+            showAlert("Odkodowano wiadomość", "Udało się odkodować wiadomość.");
+        } catch (Exception e) {
+            showAlert("Błąd!", "Nie udało się odkodować wiadomości.");
         }
     }
 
     @FXML
-    public void encodeAll() {
+    public void encodeAll() { // kodowanie danych z górnego pola i zamieszczenie ich w dolnym polu (jest to tablica intów ale w pole wpisujemy to jako BASE64)
         byte[] toEncode = upperText.getText().getBytes();
 
-        if(pubKey.getText().isEmpty()) {
-            showAlert("Błąd!","Brak klucza publicznego.");
+        if (pubKey.getText().isEmpty()) {
+            showAlert("Błąd!", "Brak klucza publicznego.");
             return;
         }
 
@@ -302,10 +301,9 @@ public class MainController {
             String base64CipherText = DataConverter.showCipherText(cipherText);
             lowerText.setText(base64CipherText);
             upperText.clear();
-            showAlert("Zakodowano wiadomość","Udało się zakodować wiadomość.");
-        }
-        catch (Exception e) {
-            showAlert("Błąd!","Nie udało się zakodować wiadomości.");
+            showAlert("Zakodowano wiadomość", "Udało się zakodować wiadomość.");
+        } catch (Exception e) {
+            showAlert("Błąd!", "Nie udało się zakodować wiadomości.");
         }
     }
 
